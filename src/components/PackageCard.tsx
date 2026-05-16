@@ -1,0 +1,64 @@
+import { Link } from 'react-router-dom'
+import { ArrowUpRight, Calendar, Download } from 'lucide-react'
+import { formatNumber, timeAgo } from '../lib/format'
+import type { PackageData } from '../types'
+
+interface Props {
+  pkg: PackageData
+}
+
+export function PackageCard({ pkg }: Props) {
+  const latest = pkg.meta['dist-tags']?.latest ?? '0.0.0'
+  const modified = pkg.meta.time?.modified
+  const keywords = pkg.meta.keywords ?? []
+
+  return (
+    <Link
+      to={`/packages/${encodeURIComponent(pkg.name)}`}
+      className="group relative block bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-5 hover:border-violet-500/40 hover:bg-zinc-900/80 transition-all"
+    >
+      <ArrowUpRight className="absolute top-4 right-4 w-4 h-4 text-zinc-600 group-hover:text-violet-400 transition-colors" />
+      <div className="flex items-start justify-between gap-3 mb-2 pr-6">
+        <h3 className="font-medium text-zinc-100 truncate">{pkg.name}</h3>
+      </div>
+      <div className="mb-3">
+        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-300 font-mono ring-1 ring-inset ring-violet-500/20">
+          v{latest}
+        </span>
+      </div>
+      <p className="text-sm text-zinc-400 line-clamp-2 mb-4 min-h-[2.5rem]">
+        {pkg.meta.description ?? 'No description available'}
+      </p>
+
+      {keywords.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {keywords.slice(0, 3).map((k) => (
+            <span
+              key={k}
+              className="text-[10px] px-1.5 py-0.5 bg-zinc-800/70 rounded text-zinc-400"
+            >
+              {k}
+            </span>
+          ))}
+          {keywords.length > 3 && (
+            <span className="text-[10px] px-1.5 py-0.5 text-zinc-500">
+              +{keywords.length - 3}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 text-xs text-zinc-500 pt-3 border-t border-zinc-800/60">
+        <span className="flex items-center gap-1">
+          <Download className="w-3.5 h-3.5" />
+          <span className="tabular-nums">{formatNumber(pkg.weekly?.downloads)}</span>
+          <span className="text-zinc-600">/wk</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <Calendar className="w-3.5 h-3.5" />
+          {timeAgo(modified)}
+        </span>
+      </div>
+    </Link>
+  )
+}
