@@ -34,12 +34,15 @@ const ACCENT_GRADIENTS = [
 
 export function Overview() {
   const { packages, loading, lastUpdated } = usePackages();
+  const pkgCount = packages.length;
 
   useMeta({
     title:
       "npm Packages Dashboard — Live Overview · Aftab Ahmad Khan TypeScript Open-Source Tools",
     description:
-      "Live overview of 11 open-source npm packages by Aftab Ahmad Khan — total downloads, version count, top packages, recent releases, and license distribution. Updated in real time from registry.npmjs.org.",
+      pkgCount > 0
+        ? `Live overview of ${pkgCount} open-source npm packages by Aftab Ahmad Khan — total downloads, version count, top packages, recent releases, and license distribution. Updated in real time from registry.npmjs.org.`
+        : "Live overview of open-source npm packages by Aftab Ahmad Khan — total downloads, version count, top packages, recent releases, and license distribution. Updated in real time from registry.npmjs.org.",
     keywords:
       "npm packages dashboard, live npm stats, open source typescript, aftab ahmad khan, mr-aftab-ahmad-khan, monodrift, picsmith, mcp-bootstrap, fileflux, chainsentry, envrunes, llmtoken, promptver, weekly downloads",
     canonical: "https://npm-packages-modules.dev/",
@@ -176,6 +179,12 @@ function HeroBanner({
             >
               npm profile
             </a>
+            <Link
+              to='/about'
+              className='inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800 text-zinc-300 text-sm hover:bg-zinc-900 hover:border-zinc-700 transition-colors'
+            >
+              My profile
+            </Link>
           </div>
         </div>
 

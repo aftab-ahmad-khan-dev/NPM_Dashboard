@@ -11,6 +11,10 @@ export function Layout() {
     setSidebarOpen(false)
   }, [location.pathname])
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }, [location.pathname, location.search])
+
   return (
     <div className='min-h-screen text-zinc-100'>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />

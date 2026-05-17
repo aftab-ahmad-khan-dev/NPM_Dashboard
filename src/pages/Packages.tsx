@@ -9,6 +9,7 @@ type SortKey = 'name' | 'downloads' | 'updated'
 
 export function Packages() {
   const { packages, loading } = usePackages()
+  const pkgCount = packages.length
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortKey>('downloads')
 
@@ -16,7 +17,9 @@ export function Packages() {
     title:
       'All npm Packages — Search & Browse · Aftab Ahmad Khan TypeScript Open-Source Modules',
     description:
-      'Browse all 11 open-source npm packages by Aftab Ahmad Khan: TypeScript developer tools, AI / LLM infrastructure, monorepo utilities, supply-chain security, image optimization, file uploads, env loading, prompt versioning, and more. Search by name, description, or keyword.',
+      pkgCount > 0
+        ? `Browse all ${pkgCount} open-source npm packages by Aftab Ahmad Khan: TypeScript developer tools, AI / LLM infrastructure, monorepo utilities, supply-chain security, image optimization, file uploads, env loading, prompt versioning, and more. Search by name, description, or keyword.`
+        : 'Browse open-source npm packages by Aftab Ahmad Khan: TypeScript developer tools, AI / LLM infrastructure, monorepo utilities, supply-chain security, image optimization, file uploads, env loading, prompt versioning, and more. Search by name, description, or keyword.',
     keywords:
       'npm packages list, open source typescript packages, node.js modules, developer tools, aftab ahmad khan packages, monodrift, picsmith, mcp-bootstrap, fileflux, chainsentry, envrunes, llmtoken, promptver, reconnecting-stream, cost-limiter, mongoose-advanced-plugin',
     canonical: 'https://npm-packages-modules.dev/packages',

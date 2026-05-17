@@ -1,7 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { PACKAGES } from '../data/packages'
-import { fetchDownloads, fetchDownloadsRange, fetchPackageMeta } from '../lib/npm-api'
+import { NPM_MAINTAINER_USERNAME, PACKAGE_DENYLIST } from '../data/packages'
+import {
+  fetchDownloads,
+  fetchDownloadsRange,
+  fetchPackageMeta,
+  fetchPackageNamesByMaintainer,
+} from '../lib/npm-api'
 import type { PackageData } from '../types'
 
 interface State {
@@ -24,8 +29,13 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
+      let names = await fetchPackageNamesByMaintainer(NPM_MAINTAINER_USERNAME)
+      if (PACKAGE_DENYLIST.length) {
+        const deny = new Set(PACKAGE_DENYLIST)
+        names = names.filter((n) => !deny.has(n))
+      }
       const results = await Promise.all(
-        PACKAGES.map(async (name) => {
+        names.map(async (name) => {
           try {
             const [meta, weekly, monthly, daily] = await Promise.all([
               fetchPackageMeta(name),

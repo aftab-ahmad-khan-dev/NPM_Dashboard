@@ -35,9 +35,15 @@ export function Header({ onMenuClick }: Props) {
         <h1 className="text-sm sm:text-base font-medium text-zinc-300 truncate">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+        <span
+          className="text-[10px] text-zinc-600 hidden md:inline max-w-[14rem] leading-snug text-right"
+          title="Weekly/monthly counts and metadata are read from npm’s official public APIs (same aggregates npm shows). No private credentials are used."
+        >
+          Public npm data · registry &amp; downloads API
+        </span>
         {lastUpdated && (
-          <span className="text-xs text-zinc-500 hidden sm:inline">
+          <span className="text-xs text-zinc-500 hidden sm:inline whitespace-nowrap">
             Updated {timeAgo(lastUpdated)}
           </span>
         )}

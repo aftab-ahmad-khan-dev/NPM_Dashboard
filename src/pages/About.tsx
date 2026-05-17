@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useMeta } from "../hooks/useMeta";
 import { BrandIcon } from "../components/BrandIcon";
+import { usePackages } from "../context/PackagesContext";
 
 const PORTFOLIO_URL = "https://aftabahmadkhan.online";
 const GITHUB_URL = "https://github.com/aftab-ahmad-khan-dev";
@@ -39,11 +40,16 @@ const NPM_PROFILE_URL = "https://www.npmjs.com/~mr-aftab-ahmad-khan";
 const GITHUB_ORG_URL = "https://github.com/NPM-Packages-Modules";
 
 export function About() {
+  const { packages } = usePackages();
+  const pkgCount = packages.length;
+
   useMeta({
     title:
       "About Aftab Ahmad Khan — Senior MERN Stack Developer, React Native, Tauri, PWA & Open-Source npm Author",
     description:
-      "Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN apps, Progressive Web Apps (PWA), Tauri desktop apps, React Native mobile apps, Shopify stores, AI-integrated platforms and 11+ open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.",
+      pkgCount > 0
+        ? `Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN apps, Progressive Web Apps (PWA), Tauri desktop apps, React Native mobile apps, Shopify stores, AI-integrated platforms and ${pkgCount}+ open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.`
+        : "Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN apps, Progressive Web Apps (PWA), Tauri desktop apps, React Native mobile apps, Shopify stores, AI-integrated platforms and open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.",
     keywords:
       "aftab ahmad khan, mr-aftab-ahmad-khan, aftab-ahmad-khan-dev, senior mern stack developer, full stack engineer, react developer, react native developer, tauri developer, tauri js, progressive web app developer, pwa, shopify developer, shopify expert, mongodb expert, node.js developer, express.js, next.js developer, typescript engineer, ai integration developer, openai integration, llm developer, freelance developer pakistan, multan developer, hire mern developer, hire react native developer, npm package author, open source maintainer, evolvo technologies, aftabahmadkhan.online, npm packages, monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken, promptver, mongoose-advanced-plugin, reconnecting-stream, cost-limiter, fileflux, supply chain security, ai infrastructure",
     canonical: "https://npm-packages-modules.dev/about",
@@ -51,11 +57,11 @@ export function About() {
 
   return (
     <div className='space-y-10 sm:space-y-14'>
-      <PersonalHero />
+      <PersonalHero npmPackageCount={pkgCount} />
       <TechStack />
-      <WhatIBuild />
-      <AboutPlatform />
-      <PackageCatalogue />
+      <WhatIBuild npmPackageCount={pkgCount} />
+      <AboutPlatform npmPackageCount={pkgCount} />
+      <PackageCatalogue npmPackageCount={pkgCount} />
       <Values />
       <Connect />
     </div>
@@ -173,7 +179,7 @@ const TECH_GROUPS: TechGroup[] = [
   },
 ];
 
-function PersonalHero() {
+function PersonalHero({ npmPackageCount }: { npmPackageCount: number }) {
   return (
     <section className='relative overflow-hidden rounded-3xl border border-zinc-800/70 bg-gradient-to-br from-zinc-900/80 via-zinc-950 to-zinc-950 animate-fade-up'>
       <div className='absolute inset-0 grid-bg' />
@@ -214,7 +220,10 @@ function PersonalHero() {
             <span className='text-amber-300'>Tauri desktop apps</span>,{" "}
             <span className='text-sky-300'>React Native</span> mobile apps,{" "}
             <span className='text-emerald-300'>Shopify</span> stores and{" "}
-            <span className='text-rose-300'>AI-integrated</span> platforms plus 11+
+            <span className='text-rose-300'>AI-integrated</span> platforms plus{" "}
+            {npmPackageCount > 0 ? (
+              <>{npmPackageCount}+ </>
+            ) : null}
             open-source <span className='text-fuchsia-300'>npm packages</span> used
             by developers worldwide.
           </p>
@@ -286,7 +295,11 @@ function PersonalHero() {
               <StatTile value='50+' label='MERN full-stack apps' accent='emerald' />
               <StatTile value='20+' label='Shopify stores' accent='amber' />
               <StatTile value='15+' label='React Native apps' accent='sky' />
-              <StatTile value='11' label='npm packages' accent='rose' />
+              <StatTile
+                value={npmPackageCount > 0 ? String(npmPackageCount) : "—"}
+                label='npm packages'
+                accent='rose'
+              />
             </div>
             <div className='mt-5 pt-5 border-t border-zinc-800/80 grid grid-cols-2 gap-3 text-[11px]'>
               <div>
@@ -441,11 +454,10 @@ const BUILDS: BuildItem[] = [
       "Tiny, focused, well-typed Node.js modules for developer tooling, supply-chain security, AI infrastructure, image pipelines, real-time streaming and MongoDB — all open-source.",
     accent: "violet",
     tags: ["TypeScript", "tsup", "vitest", "ESM", "CJS"],
-    count: "11 published",
   },
 ];
 
-function WhatIBuild() {
+function WhatIBuild({ npmPackageCount }: { npmPackageCount: number }) {
   return (
     <section className='animate-fade-up delay-1'>
       <SectionHeader
@@ -458,6 +470,12 @@ function WhatIBuild() {
       <div className='grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5'>
         {BUILDS.map((b) => {
           const a = ACCENTS[b.accent];
+          const countBadge =
+            b.title === "Open-Source npm Packages"
+              ? npmPackageCount > 0
+                ? `${npmPackageCount} published`
+                : undefined
+              : b.count;
           return (
             <article
               key={b.title}
@@ -473,9 +491,9 @@ function WhatIBuild() {
                   >
                     {b.icon}
                   </span>
-                  {b.count && (
+                  {countBadge && (
                     <span className='text-[10px] uppercase tracking-wider text-zinc-500 mt-1'>
-                      {b.count}
+                      {countBadge}
                     </span>
                   )}
                 </div>
@@ -617,13 +635,17 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-function PackageCatalogue() {
+function PackageCatalogue({ npmPackageCount }: { npmPackageCount: number }) {
   return (
     <section className='animate-fade-up delay-3'>
       <SectionHeader
         icon={<Package className='w-3.5 h-3.5' />}
         label='Open-source catalogue'
-        title='11 npm packages, grouped by what they solve.'
+        title={
+          npmPackageCount > 0
+            ? `${npmPackageCount} npm packages, grouped by what they solve.`
+            : "npm packages, grouped by what they solve."
+        }
         subtitle='Each one is small, single-purpose, MIT licensed, and TypeScript-first.'
         accent='emerald'
       />
@@ -704,7 +726,7 @@ function StatTile({
 }
 /* ---------------- About platform ---------------- */
 
-function AboutPlatform() {
+function AboutPlatform({ npmPackageCount }: { npmPackageCount: number }) {
   return (
     <section className='animate-fade-up delay-4'>
       <SectionHeader
@@ -735,9 +757,9 @@ function AboutPlatform() {
           title='Unified view'
           accent='cyan'
         >
-          11 packages, one searchable, sortable grid. Filter by name, description, or
-          keyword. Drill into any package for the full release history and a
-          one-click copy install command.
+          {npmPackageCount > 0 ? `${npmPackageCount} packages` : "Packages"}, one searchable,
+          sortable grid. Filter by name, description, or keyword. Drill into any package for the
+          full release history and a one-click copy install command.
         </FeatureCard>
         <FeatureCard
           icon={<Rocket className='w-4 h-4' />}
@@ -753,8 +775,8 @@ function AboutPlatform() {
           title='Privacy-friendly'
           accent='amber'
         >
-          No analytics, no trackers, no cookies. All data is requested directly by
-          your browser from npm’s public APIs.
+          No login required. Package metrics load directly from npm&apos;s public APIs in your
+          browser. Optional site analytics may record aggregated page views only.
         </FeatureCard>
         <FeatureCard
           icon={<Globe className='w-4 h-4' />}
