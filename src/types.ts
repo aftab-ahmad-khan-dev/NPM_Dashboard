@@ -51,5 +51,8 @@ export interface PackageData {
   meta: NpmRegistryMeta
   weekly: DownloadsPoint | null
   monthly: DownloadsPoint | null
+  /** Last 7 days — aggregated sparkline on weekly card + daily activity. */
   daily: DownloadsRange | null
+  /** Last 30 days — per-day series for monthly downloads card. */
+  monthlyRange: DownloadsRange | null
 }

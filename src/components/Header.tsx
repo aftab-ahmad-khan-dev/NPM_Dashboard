@@ -50,6 +50,7 @@ export function Header({ onMenuClick }: Props) {
         <button
           onClick={refresh}
           disabled={loading}
+          title="Re-loads your package list from npm search plus metadata and downloads. New releases appear once npm’s search index includes them (can take a few minutes)."
           className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-zinc-100 disabled:opacity-40 transition-colors"
           aria-label="Refresh data"
         >

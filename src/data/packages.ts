@@ -1,6 +1,7 @@
 /**
- * Published packages are discovered at runtime via the npm registry search API
- * (`maintainer:<username>`). Adjust the username if your npm scope changes.
+ * Package names are not listed here — every load (including header refresh) queries npm’s
+ * public search for `maintainer:` + `author:` on this username and merges results.
+ * Change only if your npm username differs. Optional denylist below hides specific names.
  */
 export const NPM_MAINTAINER_USERNAME = 'mr-aftab-ahmad-khan'
 

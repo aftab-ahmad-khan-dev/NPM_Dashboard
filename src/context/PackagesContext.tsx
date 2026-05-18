@@ -2,10 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import type { ReactNode } from 'react'
 import { NPM_MAINTAINER_USERNAME, PACKAGE_DENYLIST } from '../data/packages'
 import {
+  discoverPublishedPackageNames,
   fetchDownloads,
   fetchDownloadsRange,
   fetchPackageMeta,
-  fetchPackageNamesByMaintainer,
 } from '../lib/npm-api'
 import type { PackageData } from '../types'
 
@@ -29,7 +29,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      let names = await fetchPackageNamesByMaintainer(NPM_MAINTAINER_USERNAME)
+      let names = await discoverPublishedPackageNames(NPM_MAINTAINER_USERNAME)
       if (PACKAGE_DENYLIST.length) {
         const deny = new Set(PACKAGE_DENYLIST)
         names = names.filter((n) => !deny.has(n))
@@ -37,13 +37,14 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
       const results = await Promise.all(
         names.map(async (name) => {
           try {
-            const [meta, weekly, monthly, daily] = await Promise.all([
+            const [meta, weekly, monthly, daily, monthlyRange] = await Promise.all([
               fetchPackageMeta(name),
               fetchDownloads(name, 'last-week'),
               fetchDownloads(name, 'last-month'),
               fetchDownloadsRange(name, 'last-week'),
+              fetchDownloadsRange(name, 'last-month'),
             ])
-            return { name, meta, weekly, monthly, daily } satisfies PackageData
+            return { name, meta, weekly, monthly, daily, monthlyRange } satisfies PackageData
           } catch {
             return null
           }

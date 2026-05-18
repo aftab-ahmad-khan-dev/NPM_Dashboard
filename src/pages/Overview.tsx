@@ -230,6 +230,35 @@ function aggregateDailyDownloads(packages: PackageData[]): DayBucket[] {
     .map(([day, downloads]) => ({ day, downloads }));
 }
 
+/** Aggregate per-day downloads (last-month range) across every package. */
+function aggregateMonthlyDownloadsByDay(packages: PackageData[]): DayBucket[] {
+  const totals = new Map<string, number>();
+  for (const p of packages) {
+    for (const d of p.monthlyRange?.downloads ?? []) {
+      totals.set(d.day, (totals.get(d.day) ?? 0) + d.downloads);
+    }
+  }
+  return [...totals.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, downloads]) => ({ day, downloads }));
+}
+
+function topPackageByMonthlyDaySeries(packages: PackageData[]): {
+  name: string;
+  downloads: number;
+} | null {
+  let best: { name: string; downloads: number } | null = null;
+  for (const p of packages) {
+    const sum = (p.monthlyRange?.downloads ?? []).reduce(
+      (s, x) => s + x.downloads,
+      0,
+    );
+    if (sum <= 0) continue;
+    if (!best || sum > best.downloads) best = { name: p.name, downloads: sum };
+  }
+  return best;
+}
+
 function formatShortDate(yyyyMmDd: string): string {
   const d = new Date(yyyyMmDd + "T00:00:00Z");
   return d.toLocaleDateString("en-US", {
@@ -259,8 +288,20 @@ function StatGrid({
 }) {
   const pkgCount = topByDownloads.length || 1;
 
-  /* ----- Daily download buckets (powers the interactive sparklines) ----- */
+  /* ----- Daily download buckets (last week — powers weekly + daily cards) ----- */
   const dailyBuckets = aggregateDailyDownloads(packages);
+  const monthlyBuckets = aggregateMonthlyDownloadsByDay(packages);
+  const monthlyFromBuckets = monthlyBuckets.reduce((s, b) => s + b.downloads, 0);
+  const monthlyDisplay =
+    monthlyFromBuckets > 0 ? monthlyFromBuckets : monthly;
+  const peakMonthDay = monthlyBuckets.reduce<DayBucket | null>(
+    (acc, b) => (acc == null || b.downloads > acc.downloads ? b : acc),
+    null,
+  );
+  const avgDailyMonth = monthlyBuckets.length
+    ? monthlyFromBuckets / monthlyBuckets.length
+    : 0;
+  const topMonthlyPkg = topPackageByMonthlyDaySeries(packages);
   const peakDay = dailyBuckets.reduce<DayBucket | null>(
     (acc, b) => (acc == null || b.downloads > acc.downloads ? b : acc),
     null,
@@ -315,7 +356,7 @@ function StatGrid({
   void recent;
 
   return (
-    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4'>
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4'>
       <StatTile
         icon={Download}
         label='Weekly downloads'
@@ -403,6 +444,54 @@ function StatGrid({
       />
 
       <StatTile
+        icon={Calendar}
+        label='Monthly downloads'
+        value={formatNumber(monthlyDisplay)}
+        sub={
+          monthlyBuckets.length >= 2
+            ? `${formatShortDate(monthlyBuckets[0].day)} → ${formatShortDate(monthlyBuckets[monthlyBuckets.length - 1].day)} · daily totals`
+            : monthlyFromBuckets > 0
+              ? "Last 30 days · daily totals"
+              : "no day-by-day series yet"
+        }
+        accent='amber'
+        delay={4}
+        delta={
+          monthlyBuckets.length > 0 && avgDailyMonth > 0
+            ? {
+                value: `~${Math.round(avgDailyMonth)} / day`,
+                direction: "flat",
+                tooltip: "Average downloads per day in this npm window",
+              }
+            : undefined
+        }
+        sparkline={
+          monthlyBuckets.length > 0 ? (
+            <DailySparkline days={monthlyBuckets} accent='amber' highlightLast />
+          ) : null
+        }
+        footer={
+          topMonthlyPkg ? (
+            <LeaderRow
+              label='Top · 30d'
+              name={topMonthlyPkg.name}
+              detail={formatNumber(topMonthlyPkg.downloads)}
+              href={`/packages/${encodeURIComponent(topMonthlyPkg.name)}`}
+            />
+          ) : peakMonthDay && peakMonthDay.downloads > 0 ? (
+            <LeaderRow
+              label='Peak day'
+              name={formatShortDate(peakMonthDay.day)}
+              detail={`${formatNumber(peakMonthDay.downloads)} DLs`}
+              href='/packages'
+            />
+          ) : (
+            <FooterMuted text='Monthly totals still propagate from npm for some packages.' />
+          )
+        }
+      />
+
+      <StatTile
         icon={Activity}
         label='Daily activity'
         value={formatNumber(todayBucket?.downloads ?? 0)}
@@ -412,7 +501,7 @@ function StatGrid({
             : "no data yet"
         }
         accent='sky'
-        delay={4}
+        delay={5}
         delta={
           todayBucket && avgDailyWeek > 0
             ? {

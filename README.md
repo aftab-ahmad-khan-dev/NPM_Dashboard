@@ -1,6 +1,6 @@
 # NPM Packages Dashboard
 
-Standalone monitoring dashboard for all 11 published npm packages.
+Standalone monitoring dashboard for npm packages you publish under your npm username (discovered automatically from the public registry on each load / refresh).
 
 ## Stack
 
@@ -38,11 +38,11 @@ src/
 ├── App.tsx                       # routes
 ├── main.tsx                      # bootstrap
 ├── index.css                     # tailwind v4 entry
-├── data/packages.ts              # the list of npm package names
+├── data/packages.ts              # npm username (+ optional denylist only)
 ├── lib/
 │   ├── npm-api.ts                # registry + downloads fetchers
 │   └── format.ts                 # number / date helpers
-├── context/PackagesContext.tsx   # fetches & caches all packages
+├── context/PackagesContext.tsx   # discovers package names from npm, then fetches metadata
 ├── components/
 │   ├── Layout.tsx                # sidebar + header + <Outlet />
 │   ├── Sidebar.tsx               # collapsible mobile drawer
@@ -57,6 +57,8 @@ src/
     └── About.tsx
 ```
 
-## Adding/removing packages
+## Packages list
 
-Edit `src/data/packages.ts` — that's the single source of truth.
+Nothing to edit when you publish a new package: the app calls npm’s search API (`maintainer:` + `author:`) on every refresh and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
+
+New publishes can take a short while to appear in npm search (registry indexing lag).
