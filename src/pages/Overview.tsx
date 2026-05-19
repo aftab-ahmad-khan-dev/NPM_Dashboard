@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity,
@@ -9,7 +9,7 @@ import {
   Crown,
   Download,
   GitBranch,
-  HardDrive,
+  Github,
   Minus,
   Package,
   Scale,
@@ -19,7 +19,14 @@ import {
 import { usePackages } from "../context/PackagesContext";
 import { Skeleton } from "../components/Skeleton";
 import { BrandIcon } from "../components/BrandIcon";
-import { formatBytes, formatNumber, timeAgo } from "../lib/format";
+import { formatNumber, timeAgo } from "../lib/format";
+import {
+  fetchOrgPublicRepos,
+  publishedNameLookup,
+  unpublishedPublicRepos,
+  type OrgRepo,
+} from "../lib/github-api";
+import { GITHUB_ORG_UNPUBLISHED_SCAN } from "../data/github";
 import { useMeta } from "../hooks/useMeta";
 import {
   countPackagesByTrack,
@@ -57,6 +64,33 @@ export function Overview() {
     canonical: "https://npm-packages-modules.dev/",
   });
 
+  const [orgRepos, setOrgRepos] = useState<OrgRepo[]>([]);
+  const [ghLoading, setGhLoading] = useState(true);
+  const [ghErr, setGhErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setGhLoading(true);
+    fetchOrgPublicRepos(GITHUB_ORG_UNPUBLISHED_SCAN)
+      .then((rows) => {
+        if (!cancelled) {
+          setOrgRepos(rows);
+          setGhErr(null);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setGhErr(e instanceof Error ? e.message : "GitHub request failed");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setGhLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (loading && packages.length === 0) {
     return <LoadingState />;
   }
@@ -73,11 +107,6 @@ export function Overview() {
     (acc, p) => acc + Object.keys(p.meta.versions ?? {}).length,
     0,
   );
-  const totalSize = packages.reduce((acc, p) => {
-    const latest = p.meta["dist-tags"]?.latest;
-    const size = latest ? (p.meta.versions?.[latest]?.dist?.unpackedSize ?? 0) : 0;
-    return acc + size;
-  }, 0);
 
   const sortedByModified = [...packages].sort(
     (a, b) =>
@@ -110,10 +139,12 @@ export function Overview() {
         weekly={weeklyTotal}
         monthly={monthlyTotal}
         versions={totalVersions}
-        totalSize={totalSize}
         topByDownloads={topByDownloads}
         recent={sortedByModified[0]}
         packages={packages}
+        orgRepos={orgRepos}
+        ghLoading={ghLoading}
+        ghErr={ghErr}
       />
 
       <StackDownloadsRow
@@ -329,18 +360,22 @@ function StatGrid({
   weekly,
   monthly,
   versions,
-  totalSize,
   topByDownloads,
   recent,
   packages,
+  orgRepos,
+  ghLoading,
+  ghErr,
 }: {
   weekly: number;
   monthly: number;
   versions: number;
-  totalSize: number;
   topByDownloads: PackageData[];
   recent: PackageData | undefined;
   packages: PackageData[];
+  orgRepos: OrgRepo[];
+  ghLoading: boolean;
+  ghErr: string | null;
 }) {
   const pkgCount = topByDownloads.length || 1;
 
@@ -388,15 +423,35 @@ function StatGrid({
   const avgVersions = versions / pkgCount;
   const versionPoints = versionsByPkg.map((v) => v.count);
 
-  /* ----- Total size ----- */
-  const sizesByPkg = topByDownloads.map((p) => {
-    const latest = p.meta["dist-tags"]?.latest;
-    const size = latest ? (p.meta.versions?.[latest]?.dist?.unpackedSize ?? 0) : 0;
-    return { name: p.name, size };
-  });
-  const largest = [...sizesByPkg].sort((a, b) => b.size - a.size)[0];
-  const avgSize = totalSize / pkgCount;
-  const sizePoints = sizesByPkg.map((s) => s.size);
+  const publishedLookup = useMemo(
+    () => publishedNameLookup(packages),
+    [packages],
+  );
+  const activeGithubRepos = useMemo(
+    () => orgRepos.filter((r) => !r.fork && !r.archived),
+    [orgRepos],
+  );
+  const unpublishedRepos = useMemo(
+    () => unpublishedPublicRepos(orgRepos, publishedLookup),
+    [orgRepos, publishedLookup],
+  );
+  const linkedRepoCount = activeGithubRepos.length - unpublishedRepos.length;
+  const linkedRepoPct =
+    activeGithubRepos.length > 0
+      ? (linkedRepoCount / activeGithubRepos.length) * 100
+      : 0;
+  const unpublishedStarPoints = useMemo(() => {
+    return [...unpublishedRepos]
+      .sort((a, b) => b.stargazers_count - a.stargazers_count)
+      .slice(0, 28)
+      .map((r) => Math.max(0, r.stargazers_count));
+  }, [unpublishedRepos]);
+  const topUnpublishedRepo = useMemo(() => {
+    if (unpublishedRepos.length === 0) return undefined;
+    return [...unpublishedRepos].sort(
+      (a, b) => b.stargazers_count - a.stargazers_count,
+    )[0];
+  }, [unpublishedRepos]);
 
   /* ----- Activity ----- */
   const now = Date.now();
@@ -475,25 +530,53 @@ function StatGrid({
       />
 
       <StatTile
-        icon={HardDrive}
-        label='Total install size'
-        value={formatBytes(totalSize)}
-        sub={`avg ${formatBytes(avgSize)} per package`}
+        icon={Github}
+        label='Unpublished on npm'
+        value={
+          ghLoading
+            ? "—"
+            : String(unpublishedRepos.length)
+        }
+        sub={
+          ghErr
+            ? ghErr
+            : ghLoading
+              ? `Loading github.com/${GITHUB_ORG_UNPUBLISHED_SCAN}…`
+              : `${activeGithubRepos.length} public repos · matched by package name`
+        }
         accent='emerald'
         delay={3}
-        delta={{
-          value: `${pkgCount} pkgs`,
-          direction: "flat",
-          tooltip: "unpacked, latest versions",
-        }}
-        sparkline={<Sparkline points={sizePoints} accent='emerald' />}
+        delta={
+          !ghLoading && !ghErr && activeGithubRepos.length > 0
+            ? {
+                value: `~${linkedRepoPct.toFixed(0)}% linked`,
+                direction: "flat",
+                tooltip:
+                  "Repos whose slug matches a package on this dashboard (scoped pkgs match basename)",
+              }
+            : undefined
+        }
+        sparkline={
+          unpublishedStarPoints.length > 0 ? (
+            <Sparkline points={unpublishedStarPoints} accent='emerald' />
+          ) : null
+        }
         footer={
-          largest && largest.size > 0 ? (
-            <LeaderRow
-              label='Largest'
-              name={largest.name}
-              detail={formatBytes(largest.size)}
-              href={`/packages/${encodeURIComponent(largest.name)}`}
+          topUnpublishedRepo ? (
+            <ExternalLeaderRow
+              label='Top unpublished'
+              name={topUnpublishedRepo.name}
+              detail={`${formatNumber(topUnpublishedRepo.stargazers_count)} ★`}
+              href={topUnpublishedRepo.html_url}
+            />
+          ) : !ghLoading && !ghErr && activeGithubRepos.length > 0 ? (
+            <FooterMuted text='All scanned repos match a published package name (by slug).' />
+          ) : !ghLoading && !ghErr ? (
+            <ExternalLeaderRow
+              label='Org'
+              name={GITHUB_ORG_UNPUBLISHED_SCAN}
+              detail='GitHub →'
+              href={`https://github.com/${GITHUB_ORG_UNPUBLISHED_SCAN}`}
             />
           ) : null
         }
@@ -771,6 +854,38 @@ function LeaderRow({
       </div>
       <span className='text-zinc-400 tabular-nums shrink-0'>{detail}</span>
     </Link>
+  );
+}
+
+function ExternalLeaderRow({
+  label,
+  name,
+  detail,
+  href,
+}: {
+  label: string;
+  name: string;
+  detail: string;
+  href: string;
+}) {
+  return (
+    <a
+      href={href}
+      target='_blank'
+      rel='noopener noreferrer'
+      className='group/lr flex items-center justify-between gap-2 text-[11px] hover:text-zinc-100 transition-colors'
+    >
+      <div className='min-w-0 flex items-center gap-1.5'>
+        <span className='text-zinc-500 shrink-0'>{label}</span>
+        <span className='text-zinc-200 font-medium truncate group-hover/lr:underline underline-offset-2 decoration-zinc-600'>
+          {name}
+        </span>
+      </div>
+      <span className='flex items-center gap-0.5 text-zinc-400 tabular-nums shrink-0'>
+        {detail}
+        <ArrowUpRight className='w-3 h-3 opacity-60' aria-hidden />
+      </span>
+    </a>
   );
 }
 
