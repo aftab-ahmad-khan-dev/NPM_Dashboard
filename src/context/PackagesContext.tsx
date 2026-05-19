@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { NPM_MAINTAINER_USERNAME, PACKAGE_DENYLIST } from '../data/packages'
+import { NPM_MAINTAINER_USERNAME, NPM_PACKAGES_PINNED, PACKAGE_DENYLIST } from '../data/packages'
 import {
   discoverPublishedPackageNames,
   fetchDownloads,
@@ -19,6 +19,46 @@ interface State {
 
 const Ctx = createContext<State | null>(null)
 
+const PACKAGE_FETCH_BATCH = 10
+const PACKAGE_RETRY_DELAY_MS = 600
+
+async function mapInBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = []
+  for (let i = 0; i < items.length; i += batchSize) {
+    const chunk = items.slice(i, i + batchSize)
+    const part = await Promise.all(chunk.map((item) => fn(item)))
+    out.push(...part)
+  }
+  return out
+}
+
+async function loadPackageData(name: string): Promise<PackageData | null> {
+  const fetchOnce = async (): Promise<PackageData> => {
+    const [meta, weekly, monthly, daily, monthlyRange] = await Promise.all([
+      fetchPackageMeta(name),
+      fetchDownloads(name, 'last-week'),
+      fetchDownloads(name, 'last-month'),
+      fetchDownloadsRange(name, 'last-week'),
+      fetchDownloadsRange(name, 'last-month'),
+    ])
+    return { name, meta, weekly, monthly, daily, monthlyRange }
+  }
+  try {
+    return await fetchOnce()
+  } catch {
+    await new Promise((r) => setTimeout(r, PACKAGE_RETRY_DELAY_MS))
+    try {
+      return await fetchOnce()
+    } catch {
+      return null
+    }
+  }
+}
+
 export function PackagesProvider({ children }: { children: ReactNode }) {
   const [packages, setPackages] = useState<PackageData[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,26 +70,16 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       let names = await discoverPublishedPackageNames(NPM_MAINTAINER_USERNAME)
+      if (NPM_PACKAGES_PINNED.length) {
+        const merged = new Set(names)
+        for (const n of NPM_PACKAGES_PINNED) merged.add(n)
+        names = [...merged].sort((a, b) => a.localeCompare(b))
+      }
       if (PACKAGE_DENYLIST.length) {
         const deny = new Set(PACKAGE_DENYLIST)
         names = names.filter((n) => !deny.has(n))
       }
-      const results = await Promise.all(
-        names.map(async (name) => {
-          try {
-            const [meta, weekly, monthly, daily, monthlyRange] = await Promise.all([
-              fetchPackageMeta(name),
-              fetchDownloads(name, 'last-week'),
-              fetchDownloads(name, 'last-month'),
-              fetchDownloadsRange(name, 'last-week'),
-              fetchDownloadsRange(name, 'last-month'),
-            ])
-            return { name, meta, weekly, monthly, daily, monthlyRange } satisfies PackageData
-          } catch {
-            return null
-          }
-        }),
-      )
+      const results = await mapInBatches(names, PACKAGE_FETCH_BATCH, loadPackageData)
       const filtered = results.filter((r): r is PackageData => r !== null)
       setPackages(filtered)
       setLastUpdated(new Date())

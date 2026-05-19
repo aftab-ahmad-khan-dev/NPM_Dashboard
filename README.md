@@ -38,7 +38,7 @@ src/
 ├── App.tsx                       # routes
 ├── main.tsx                      # bootstrap
 ├── index.css                     # tailwind v4 entry
-├── data/packages.ts              # npm username (+ optional denylist only)
+├── data/packages.ts              # npm username, optional denylist + pinned package names
 ├── lib/
 │   ├── npm-api.ts                # registry + downloads fetchers
 │   └── format.ts                 # number / date helpers
@@ -61,4 +61,12 @@ src/
 
 Nothing to edit when you publish a new package: the app calls npm’s search API (`maintainer:` + `author:`) on every refresh and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
 
+Loads run in **small batches** with a **retry** if a package fails to fetch — that reduces npm throttling and stops weekly/monthly totals from jumping when some requests randomly fail.
+
+If totals still drift because search occasionally omits a package, add those names to **`NPM_PACKAGES_PINNED`** in `src/data/packages.ts` (always merged with discovery).
+
 New publishes can take a short while to appear in npm search (registry indexing lag).
+
+## GitHub org card (Overview)
+
+The **[NPM-Packages-Modules](https://github.com/orgs/NPM-Packages-Modules/repositories)** org uses **umbrella monorepos** (`mern`, `react-native`, `flutter`). Those roots are **excluded** from the “unpublished vs npm name” heuristic. The **`all-packages`** repo is **ignored** entirely (meta umbrella). Only **standalone** org repos are compared to package names on the dashboard (still approximate: slug match only).

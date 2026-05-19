@@ -26,7 +26,11 @@ import {
   unpublishedPublicRepos,
   type OrgRepo,
 } from "../lib/github-api";
-import { GITHUB_ORG_UNPUBLISHED_SCAN } from "../data/github";
+import {
+  GITHUB_ORG_UNPUBLISHED_SCAN,
+  isGithubOrgMonorepoRoot,
+  isGithubOrgRepoIgnored,
+} from "../data/github";
 import { useMeta } from "../hooks/useMeta";
 import {
   countPackagesByTrack,
@@ -91,6 +95,11 @@ export function Overview() {
     };
   }, []);
 
+  const visibleOrgRepos = useMemo(
+    () => orgRepos.filter((r) => !isGithubOrgRepoIgnored(r.name)),
+    [orgRepos],
+  );
+
   if (loading && packages.length === 0) {
     return <LoadingState />;
   }
@@ -142,7 +151,7 @@ export function Overview() {
         topByDownloads={topByDownloads}
         recent={sortedByModified[0]}
         packages={packages}
-        orgRepos={orgRepos}
+        orgRepos={visibleOrgRepos}
         ghLoading={ghLoading}
         ghErr={ghErr}
       />
@@ -431,14 +440,23 @@ function StatGrid({
     () => orgRepos.filter((r) => !r.fork && !r.archived),
     [orgRepos],
   );
-  const unpublishedRepos = useMemo(
-    () => unpublishedPublicRepos(orgRepos, publishedLookup),
-    [orgRepos, publishedLookup],
+  /** Umbrella monorepos (mern / react-native / flutter) hold packages in subfolders — not 1:1 npm names. */
+  const monorepoRootRepos = useMemo(
+    () => activeGithubRepos.filter((r) => isGithubOrgMonorepoRoot(r.name)),
+    [activeGithubRepos],
   );
-  const linkedRepoCount = activeGithubRepos.length - unpublishedRepos.length;
+  const candidateGithubRepos = useMemo(
+    () => activeGithubRepos.filter((r) => !isGithubOrgMonorepoRoot(r.name)),
+    [activeGithubRepos],
+  );
+  const unpublishedRepos = useMemo(
+    () => unpublishedPublicRepos(candidateGithubRepos, publishedLookup),
+    [candidateGithubRepos, publishedLookup],
+  );
+  const linkedRepoCount = candidateGithubRepos.length - unpublishedRepos.length;
   const linkedRepoPct =
-    activeGithubRepos.length > 0
-      ? (linkedRepoCount / activeGithubRepos.length) * 100
+    candidateGithubRepos.length > 0
+      ? (linkedRepoCount / candidateGithubRepos.length) * 100
       : 0;
   const unpublishedStarPoints = useMemo(() => {
     return [...unpublishedRepos]
@@ -542,17 +560,17 @@ function StatGrid({
             ? ghErr
             : ghLoading
               ? `Loading github.com/${GITHUB_ORG_UNPUBLISHED_SCAN}…`
-              : `${activeGithubRepos.length} public repos · matched by package name`
+              : `${activeGithubRepos.length} public repos · ${monorepoRootRepos.length} umbrella monorepos excluded · other repo slugs vs npm`
         }
         accent='emerald'
         delay={3}
         delta={
-          !ghLoading && !ghErr && activeGithubRepos.length > 0
+          !ghLoading && !ghErr && candidateGithubRepos.length > 0
             ? {
                 value: `~${linkedRepoPct.toFixed(0)}% linked`,
                 direction: "flat",
                 tooltip:
-                  "Repos whose slug matches a package on this dashboard (scoped pkgs match basename)",
+                  "Among non-monorepo org repos: share whose slug matches a package on this dashboard (scoped pkgs match basename). Umbrella repos mern, react-native, flutter are excluded; all-packages is ignored.",
               }
             : undefined
         }
@@ -569,8 +587,8 @@ function StatGrid({
               detail={`${formatNumber(topUnpublishedRepo.stargazers_count)} ★`}
               href={topUnpublishedRepo.html_url}
             />
-          ) : !ghLoading && !ghErr && activeGithubRepos.length > 0 ? (
-            <FooterMuted text='All scanned repos match a published package name (by slug).' />
+          ) : !ghLoading && !ghErr && candidateGithubRepos.length > 0 ? (
+            <FooterMuted text='All standalone org repos match a published package name (by slug).' />
           ) : !ghLoading && !ghErr ? (
             <ExternalLeaderRow
               label='Org'

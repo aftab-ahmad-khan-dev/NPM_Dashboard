@@ -7,3 +7,9 @@ export const NPM_MAINTAINER_USERNAME = 'mr-aftab-ahmad-khan'
 
 /** Package names to omit from the dashboard (optional). */
 export const PACKAGE_DENYLIST: string[] = []
+
+/**
+ * Always merged into discovery results (deduped). Use when npm search intermittently omits packages,
+ * which makes weekly/monthly totals jump between refreshes.
+ */
+export const NPM_PACKAGES_PINNED: string[] = []
