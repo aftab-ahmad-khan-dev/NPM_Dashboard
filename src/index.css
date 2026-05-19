@@ -71,14 +71,15 @@ body {
 .animate-fade-in { animation: fade-in 0.4s ease-out backwards; }
 .animate-float   { animation: float 4s ease-in-out infinite; }
 
-.delay-0 { animation-delay: 0ms; }
-.delay-1 { animation-delay: 60ms; }
-.delay-2 { animation-delay: 120ms; }
-.delay-3 { animation-delay: 180ms; }
-.delay-4 { animation-delay: 240ms; }
-.delay-5 { animation-delay: 300ms; }
-.delay-6 { animation-delay: 360ms; }
-.delay-7 { animation-delay: 420ms; }
+/* Staggered fade-up: use `anim-stagger-*`, not `delay-*` — Tailwind v4 defines its own `delay-*` as transition-delay. */
+.anim-stagger-0 { animation-delay: 0ms; }
+.anim-stagger-1 { animation-delay: 60ms; }
+.anim-stagger-2 { animation-delay: 120ms; }
+.anim-stagger-3 { animation-delay: 180ms; }
+.anim-stagger-4 { animation-delay: 240ms; }
+.anim-stagger-5 { animation-delay: 300ms; }
+.anim-stagger-6 { animation-delay: 360ms; }
+.anim-stagger-7 { animation-delay: 420ms; }
 
 .grid-bg {
   background-image:

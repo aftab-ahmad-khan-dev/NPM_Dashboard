@@ -326,7 +326,7 @@ function PersonalHero({ npmPackageCount }: { npmPackageCount: number }) {
 
 function TechStack() {
   return (
-    <section className='animate-fade-up delay-2'>
+    <section className='animate-fade-up anim-stagger-2'>
       <SectionHeader
         icon={<Code2 className='w-3.5 h-3.5' />}
         label='Tech stack'
@@ -433,7 +433,7 @@ const BUILDS: BuildItem[] = [
 
 function WhatIBuild({ npmPackageCount }: { npmPackageCount: number }) {
   return (
-    <section className='animate-fade-up delay-1'>
+    <section className='animate-fade-up anim-stagger-1'>
       <SectionHeader
         icon={<Layers className='w-3.5 h-3.5' />}
         label='What I build'
@@ -611,7 +611,7 @@ const CATEGORIES: Category[] = [
 
 function PackageCatalogue({ npmPackageCount }: { npmPackageCount: number }) {
   return (
-    <section className='animate-fade-up delay-3'>
+    <section className='animate-fade-up anim-stagger-3'>
       <SectionHeader
         icon={<Package className='w-3.5 h-3.5' />}
         label='Open-source catalogue'
@@ -702,7 +702,7 @@ function StatTile({
 
 function AboutPlatform({ npmPackageCount }: { npmPackageCount: number }) {
   return (
-    <section className='animate-fade-up delay-4'>
+    <section className='animate-fade-up anim-stagger-4'>
       <SectionHeader
         icon={<LineChart className='w-3.5 h-3.5' />}
         label='The platform'
@@ -799,7 +799,7 @@ function Values() {
     },
   ];
   return (
-    <section className='animate-fade-up delay-5'>
+    <section className='animate-fade-up anim-stagger-5'>
       <SectionHeader
         icon={<Heart className='w-3.5 h-3.5' />}
         label='Philosophy'
@@ -890,7 +890,7 @@ const SOCIAL_CARDS = [
 
 function Connect() {
   return (
-    <section className='animate-fade-up delay-6'>
+    <section className='animate-fade-up anim-stagger-6'>
       <SectionHeader
         icon={<Rocket className='w-3.5 h-3.5' />}
         label='Let’s work together'

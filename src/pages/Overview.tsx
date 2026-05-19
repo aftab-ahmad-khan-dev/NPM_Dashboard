@@ -180,7 +180,7 @@ const TRACK_PILL: Record<
 function TrackRibbon({ packages }: { packages: PackageData[] }) {
   const counts = useMemo(() => countPackagesByTrack(packages), [packages]);
   return (
-    <section className='rounded-2xl border border-zinc-800/70 bg-zinc-900/35 backdrop-blur-sm px-4 py-4 sm:px-5 animate-fade-up delay-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
+    <section className='rounded-2xl border border-zinc-800/70 bg-zinc-900/35 backdrop-blur-sm px-4 py-4 sm:px-5 animate-fade-up anim-stagger-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
       <p className='text-[11px] sm:text-xs text-zinc-500 max-w-xl leading-relaxed'>
         Modules are grouped into{" "}
         <span className='text-zinc-400 font-medium'>three stacks</span> using npm
@@ -215,7 +215,7 @@ function HeroBanner({
   lastUpdated: Date | null;
 }) {
   return (
-    <section className='relative overflow-hidden rounded-3xl border border-zinc-800/70 bg-gradient-to-br from-zinc-900/80 via-zinc-950 to-zinc-950 p-6 sm:p-8 lg:p-10 animate-fade-up delay-0'>
+    <section className='relative overflow-hidden rounded-3xl border border-zinc-800/70 bg-gradient-to-br from-zinc-900/80 via-zinc-950 to-zinc-950 p-6 sm:p-8 lg:p-10 animate-fade-up anim-stagger-0'>
       <div className='absolute inset-0 grid-bg' />
       <div className='absolute -top-24 -right-16 w-72 h-72 rounded-full bg-violet-600/15 blur-3xl' />
       <div className='absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-cyan-500/10 blur-3xl' />
@@ -767,6 +767,15 @@ function DeltaChip({ delta }: { delta: Delta }) {
   );
 }
 
+/** Matches {@link StatTile} `delay` prop (1–5) to CSS stagger utilities (not `delay-*` — conflicts with Tailwind). */
+const STAT_TILE_STAGGER_CLASS: Record<number, string> = {
+  1: "anim-stagger-1",
+  2: "anim-stagger-2",
+  3: "anim-stagger-3",
+  4: "anim-stagger-4",
+  5: "anim-stagger-5",
+};
+
 function StatTile({
   icon: Icon,
   label,
@@ -789,9 +798,10 @@ function StatTile({
   footer?: ReactNode;
 }) {
   const a = ACCENTS[accent];
+  const staggerClass = STAT_TILE_STAGGER_CLASS[delay] ?? "anim-stagger-0";
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-4 sm:p-5 hover:bg-zinc-900/80 hover:-translate-y-0.5 transition-all duration-300 animate-fade-up delay-${delay} flex flex-col`}
+      className={`group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-4 sm:p-5 hover:bg-zinc-900/80 hover:-translate-y-0.5 transition-all duration-300 animate-fade-up ${staggerClass} flex flex-col`}
     >
       <div
         className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${a.glow} before:opacity-50 opacity-0 group-hover:opacity-100 transition-opacity blur-3xl`}
@@ -1043,7 +1053,7 @@ function StackStatCard({
 }) {
   const a = ACCENTS[accent];
   return (
-    <div className='group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-4 sm:p-5 hover:bg-zinc-900/80 hover:-translate-y-0.5 transition-all duration-300 animate-fade-up delay-6 flex flex-col'>
+    <div className='group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-4 sm:p-5 hover:bg-zinc-900/80 hover:-translate-y-0.5 transition-all duration-300 animate-fade-up anim-stagger-6 flex flex-col'>
       <div
         className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${a.glow} before:opacity-50 opacity-0 group-hover:opacity-100 transition-opacity blur-3xl`}
       />
@@ -1197,7 +1207,7 @@ function FeaturedCard({ pkg }: { pkg: PackageData }) {
   return (
     <Link
       to={`/packages/${encodeURIComponent(pkg.name)}`}
-      className='group relative block overflow-hidden rounded-3xl gradient-border bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 lg:p-8 hover:bg-zinc-900/80 transition-colors animate-fade-up delay-5'
+      className='group relative block overflow-hidden rounded-3xl gradient-border bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 lg:p-8 hover:bg-zinc-900/80 transition-colors animate-fade-up anim-stagger-5'
     >
       <div className='absolute -top-20 -right-10 w-72 h-72 rounded-full bg-violet-600/15 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity' />
       <div className='relative grid sm:grid-cols-[auto_1fr_auto] gap-4 sm:gap-6 items-center'>
@@ -1257,7 +1267,7 @@ function FeaturedCard({ pkg }: { pkg: PackageData }) {
 function TopDownloadsChart({ packages }: { packages: PackageData[] }) {
   const max = packages[0]?.weekly?.downloads ?? 1;
   return (
-    <div className='lg:col-span-3 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up delay-6'>
+    <div className='lg:col-span-3 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up anim-stagger-6'>
       <div className='flex items-center justify-between mb-5'>
         <div className='flex items-center gap-2'>
           <div className='p-1.5 rounded-lg bg-violet-500/10 text-violet-300 ring-1 ring-inset ring-violet-500/20'>
@@ -1315,7 +1325,7 @@ function TopDownloadsChart({ packages }: { packages: PackageData[] }) {
 
 function RecentActivity({ packages }: { packages: PackageData[] }) {
   return (
-    <div className='lg:col-span-2 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up delay-7'>
+    <div className='lg:col-span-2 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up anim-stagger-7'>
       <div className='flex items-center gap-2 mb-5'>
         <div className='p-1.5 rounded-lg bg-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-500/20'>
           <Activity className='w-3.5 h-3.5' />
@@ -1363,7 +1373,7 @@ function LicenseSection({
 }) {
   const entries = Object.entries(licenses).sort((a, b) => b[1] - a[1]);
   return (
-    <div className='rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up delay-7'>
+    <div className='rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up anim-stagger-7'>
       <div className='flex items-center justify-between mb-5'>
         <div className='flex items-center gap-2'>
           <div className='p-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 ring-1 ring-inset ring-cyan-500/20'>
