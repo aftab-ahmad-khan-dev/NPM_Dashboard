@@ -1,3 +1,4 @@
+import { useMemo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity,
@@ -17,8 +18,16 @@ import {
 } from "lucide-react";
 import { usePackages } from "../context/PackagesContext";
 import { Skeleton } from "../components/Skeleton";
+import { BrandIcon } from "../components/BrandIcon";
 import { formatBytes, formatNumber, timeAgo } from "../lib/format";
 import { useMeta } from "../hooks/useMeta";
+import {
+  countPackagesByTrack,
+  inferPackageTrack,
+  TRACK_META,
+  TRACK_ORDER,
+  type DevTrackId,
+} from "../lib/package-track";
 import type { PackageData } from "../types";
 
 const ACCENT_GRADIENTS = [
@@ -44,7 +53,7 @@ export function Overview() {
         ? `Live overview of ${pkgCount} open-source npm packages by Aftab Ahmad Khan — total downloads, version count, top packages, recent releases, and license distribution. Updated in real time from registry.npmjs.org.`
         : "Live overview of open-source npm packages by Aftab Ahmad Khan — total downloads, version count, top packages, recent releases, and license distribution. Updated in real time from registry.npmjs.org.",
     keywords:
-      "npm packages dashboard, live npm stats, open source typescript, aftab ahmad khan, mr-aftab-ahmad-khan, monodrift, picsmith, mcp-bootstrap, fileflux, chainsentry, envrunes, llmtoken, promptver, weekly downloads",
+      "npm packages dashboard, MERN, React Native, Flutter, live npm stats, open source typescript, aftab ahmad khan, mr-aftab-ahmad-khan, monodrift, picsmith, mcp-bootstrap, fileflux, chainsentry, envrunes, llmtoken, promptver, weekly downloads",
     canonical: "https://npm-packages-modules.dev/",
   });
 
@@ -95,6 +104,8 @@ export function Overview() {
         lastUpdated={lastUpdated}
       />
 
+      <TrackRibbon packages={packages} />
+
       <StatGrid
         weekly={weeklyTotal}
         monthly={monthlyTotal}
@@ -103,6 +114,12 @@ export function Overview() {
         topByDownloads={topByDownloads}
         recent={sortedByModified[0]}
         packages={packages}
+      />
+
+      <StackDownloadsRow
+        packages={packages}
+        weeklyTotal={weeklyTotal}
+        monthlyTotal={monthlyTotal}
       />
 
       {featured && <FeaturedCard pkg={featured} />}
@@ -114,6 +131,42 @@ export function Overview() {
 
       <LicenseSection licenses={licenseCounts} total={packages.length} />
     </div>
+  );
+}
+
+const TRACK_PILL: Record<
+  DevTrackId,
+  string
+> = {
+  mern:
+    "border-emerald-500/25 bg-emerald-500/5 text-emerald-300 ring-emerald-500/15",
+  "react-native":
+    "border-sky-500/25 bg-sky-500/5 text-sky-300 ring-sky-500/15",
+  flutter:
+    "border-cyan-500/25 bg-cyan-500/5 text-cyan-300 ring-cyan-500/15",
+};
+
+function TrackRibbon({ packages }: { packages: PackageData[] }) {
+  const counts = useMemo(() => countPackagesByTrack(packages), [packages]);
+  return (
+    <section className='rounded-2xl border border-zinc-800/70 bg-zinc-900/35 backdrop-blur-sm px-4 py-4 sm:px-5 animate-fade-up delay-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
+      <p className='text-[11px] sm:text-xs text-zinc-500 max-w-xl leading-relaxed'>
+        Modules are grouped into{" "}
+        <span className='text-zinc-400 font-medium'>three stacks</span> using npm
+        keywords & descriptions (plain Node/TS libraries default to MERN tooling).
+      </p>
+      <div className='flex flex-wrap gap-2 shrink-0'>
+        {TRACK_ORDER.map((id) => (
+          <div
+            key={id}
+            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs border ring-1 ring-inset tabular-nums ${TRACK_PILL[id]}`}
+          >
+            <span className='font-semibold'>{TRACK_META[id].shortLabel}</span>
+            <span className='opacity-80'>{counts[id]} pkgs</span>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -159,8 +212,11 @@ function HeroBanner({
           </h1>
 
           <p className='text-sm sm:text-base text-zinc-400 mt-4 max-w-xl leading-relaxed'>
-            Live, unified view of every package you publish to npm downloads,
-            versions, health and recency in one place.
+            Live snapshot of everything on npm that backs your{" "}
+            <strong className='text-zinc-300'>MERN</strong>,{" "}
+            <strong className='text-zinc-300'>React Native</strong>, and{" "}
+            <strong className='text-zinc-300'>Flutter</strong> stacks — downloads,
+            versions, footprint and release cadence in one place.
           </p>
 
           <div className='flex flex-wrap gap-2 mt-5 sm:mt-6'>
@@ -604,6 +660,30 @@ interface Delta {
   tooltip?: string;
 }
 
+function DeltaChip({ delta }: { delta: Delta }) {
+  const colors =
+    delta.direction === "up"
+      ? "text-emerald-300 bg-emerald-500/10 ring-emerald-500/20"
+      : delta.direction === "down"
+        ? "text-rose-300 bg-rose-500/10 ring-rose-500/20"
+        : "text-zinc-400 bg-zinc-500/10 ring-zinc-500/20";
+  const ChipIcon =
+    delta.direction === "up"
+      ? ArrowUp
+      : delta.direction === "down"
+        ? ArrowDown
+        : Minus;
+  return (
+    <span
+      title={delta.tooltip}
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md ring-1 ring-inset text-[10px] font-medium tabular-nums ${colors}`}
+    >
+      <ChipIcon className='w-2.5 h-2.5' />
+      {delta.value}
+    </span>
+  );
+}
+
 function StatTile({
   icon: Icon,
   label,
@@ -622,8 +702,8 @@ function StatTile({
   accent: AccentKey;
   delay: number;
   delta?: Delta;
-  sparkline?: React.ReactNode;
-  footer?: React.ReactNode;
+  sparkline?: ReactNode;
+  footer?: ReactNode;
 }) {
   const a = ACCENTS[accent];
   return (
@@ -634,7 +714,6 @@ function StatTile({
         className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${a.glow} before:opacity-50 opacity-0 group-hover:opacity-100 transition-opacity blur-3xl`}
       />
       <div className='relative flex flex-col flex-1 gap-3'>
-        {/* header */}
         <div className='flex items-start justify-between gap-2'>
           <span className='text-[10px] uppercase tracking-wider text-zinc-500'>
             {label}
@@ -649,7 +728,6 @@ function StatTile({
           </div>
         </div>
 
-        {/* value */}
         <div>
           <div className='text-2xl sm:text-3xl font-bold text-zinc-50 tabular-nums leading-none'>
             {value}
@@ -661,37 +739,11 @@ function StatTile({
           )}
         </div>
 
-        {/* sparkline */}
         {sparkline && <div className='mt-auto'>{sparkline}</div>}
 
-        {/* footer with leader */}
         {footer && <div className='pt-2 border-t border-zinc-800/70'>{footer}</div>}
       </div>
     </div>
-  );
-}
-
-function DeltaChip({ delta }: { delta: Delta }) {
-  const colors =
-    delta.direction === "up"
-      ? "text-emerald-300 bg-emerald-500/10 ring-emerald-500/20"
-      : delta.direction === "down"
-        ? "text-rose-300 bg-rose-500/10 ring-rose-500/20"
-        : "text-zinc-400 bg-zinc-500/10 ring-zinc-500/20";
-  const Icon =
-    delta.direction === "up"
-      ? ArrowUp
-      : delta.direction === "down"
-        ? ArrowDown
-        : Minus;
-  return (
-    <span
-      title={delta.tooltip}
-      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md ring-1 ring-inset text-[10px] font-medium tabular-nums ${colors}`}
-    >
-      <Icon className='w-2.5 h-2.5' />
-      {delta.value}
-    </span>
   );
 }
 
@@ -818,6 +870,207 @@ function DailySparkline({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function MernStackIcons() {
+  const icons: Array<{
+    slug: string;
+    alt: string;
+    color?: string;
+    forceWhite?: boolean;
+  }> = [
+    { slug: "mongodb", color: "47A248", alt: "MongoDB" },
+    { slug: "express", forceWhite: true, alt: "Express" },
+    { slug: "react", color: "61DAFB", alt: "React" },
+    { slug: "nodedotjs", color: "5FA04E", alt: "Node.js" },
+  ];
+  return (
+    <span className='flex items-center'>
+      {icons.map((b, i) => (
+        <span
+          key={b.slug}
+          className={`rounded-md ring-1 ring-zinc-700 bg-zinc-950 p-0.5 ${i > 0 ? "-ml-1.5" : ""}`}
+          style={{ zIndex: icons.length - i }}
+        >
+          <BrandIcon
+            slug={b.slug}
+            color={b.color}
+            forceWhite={b.forceWhite}
+            size={15}
+            alt={b.alt}
+          />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function StackStatCard({
+  label,
+  value,
+  sub,
+  accent,
+  delta,
+  sparkline,
+  footer,
+  icons,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent: AccentKey;
+  delta?: Delta;
+  sparkline?: ReactNode;
+  footer?: ReactNode;
+  icons: ReactNode;
+}) {
+  const a = ACCENTS[accent];
+  return (
+    <div className='group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-4 sm:p-5 hover:bg-zinc-900/80 hover:-translate-y-0.5 transition-all duration-300 animate-fade-up delay-6 flex flex-col'>
+      <div
+        className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${a.glow} before:opacity-50 opacity-0 group-hover:opacity-100 transition-opacity blur-3xl`}
+      />
+      <div className='relative flex flex-col flex-1 gap-3'>
+        <div className='flex items-start justify-between gap-2'>
+          <span className='text-[10px] uppercase tracking-wider text-zinc-500'>
+            {label}
+          </span>
+          <div className='flex items-center gap-1.5 shrink-0'>
+            {delta && <DeltaChip delta={delta} />}
+            <span
+              className={`p-1.5 rounded-lg ring-1 ring-inset ${a.ring} ${a.icon} flex items-center justify-center min-w-[2rem] min-h-[2rem]`}
+            >
+              {icons}
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <div className='text-2xl sm:text-3xl font-bold text-zinc-50 tabular-nums leading-none'>
+            {value}
+          </div>
+          {sub && (
+            <div className='text-[11px] text-zinc-500 mt-1.5 leading-snug' title={sub}>
+              {sub}
+            </div>
+          )}
+        </div>
+
+        {sparkline && <div className='mt-auto'>{sparkline}</div>}
+
+        {footer && <div className='pt-2 border-t border-zinc-800/70'>{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+function StackDownloadsRow({
+  packages,
+  weeklyTotal,
+  monthlyTotal,
+}: {
+  packages: PackageData[];
+  weeklyTotal: number;
+  monthlyTotal: number;
+}) {
+  const byTrack = useMemo(() => {
+    return TRACK_ORDER.map((track) => {
+      const pkgs = packages.filter((p) => inferPackageTrack(p) === track);
+      const weekly = pkgs.reduce((s, p) => s + (p.weekly?.downloads ?? 0), 0);
+      const monthly = pkgs.reduce((s, p) => s + (p.monthly?.downloads ?? 0), 0);
+      const dailyBuckets = aggregateDailyDownloads(pkgs);
+      const top = [...pkgs].sort(
+        (a, b) => (b.weekly?.downloads ?? 0) - (a.weekly?.downloads ?? 0),
+      )[0];
+      const share = weeklyTotal > 0 ? (weekly / weeklyTotal) * 100 : 0;
+      return { track, pkgs, weekly, monthly, dailyBuckets, top, share };
+    });
+  }, [packages, weeklyTotal]);
+
+  const allDaily = useMemo(() => aggregateDailyDownloads(packages), [packages]);
+
+  const trackAccent: Record<DevTrackId, AccentKey> = {
+    mern: "emerald",
+    "react-native": "sky",
+    flutter: "cyan",
+  };
+
+  const trackIcons: Record<DevTrackId, ReactNode> = {
+    mern: <MernStackIcons />,
+    "react-native": (
+      <BrandIcon slug='react' color='61DAFB' size={20} alt='React Native' />
+    ),
+    flutter: (
+      <BrandIcon slug='flutter' color='02569B' size={20} alt='Flutter' />
+    ),
+  };
+
+  return (
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4'>
+      {byTrack.map(
+        ({ track, pkgs, weekly, monthly, dailyBuckets, top, share }) => (
+          <StackStatCard
+            key={track}
+            label={`${TRACK_META[track].shortLabel} · weekly DLs`}
+            value={formatNumber(weekly)}
+            sub={`${formatNumber(monthly)} last 30d · ${pkgs.length} package${
+              pkgs.length !== 1 ? "s" : ""
+            }`}
+            accent={trackAccent[track]}
+            delta={{
+              value: `~${share.toFixed(0)}%`,
+              direction: "flat",
+              tooltip: "Share of all weekly downloads",
+            }}
+            sparkline={
+              dailyBuckets.length > 0 ? (
+                <DailySparkline days={dailyBuckets} accent={trackAccent[track]} />
+              ) : null
+            }
+            footer={
+              top && (top.weekly?.downloads ?? 0) > 0 ? (
+                <LeaderRow
+                  label='Top'
+                  name={top.name}
+                  detail={formatNumber(top.weekly?.downloads ?? 0)}
+                  href={`/packages/${encodeURIComponent(top.name)}`}
+                />
+              ) : (
+                <FooterMuted text='No downloads this week for this stack.' />
+              )
+            }
+            icons={trackIcons[track]}
+          />
+        ),
+      )}
+
+      <StackStatCard
+        label='All stacks · weekly DLs'
+        value={formatNumber(weeklyTotal)}
+        sub={`${formatNumber(monthlyTotal)} combined · last 30 days`}
+        accent='violet'
+        delta={{
+          value: `${packages.length} pkgs`,
+          direction: "flat",
+          tooltip: "Packages in portfolio",
+        }}
+        sparkline={
+          allDaily.length > 0 ? (
+            <DailySparkline days={allDaily} accent='violet' highlightLast />
+          ) : null
+        }
+        footer={
+          <LeaderRow
+            label='Explore'
+            name='Packages · stack filters'
+            detail='View →'
+            href='/packages'
+          />
+        }
+        icons={<Download className='w-4 h-4 text-violet-300' aria-hidden />}
+      />
     </div>
   );
 }

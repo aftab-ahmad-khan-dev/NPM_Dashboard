@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Calendar, Download } from 'lucide-react'
 import { formatNumber, timeAgo } from '../lib/format'
+import { inferPackageTrack, TRACK_META, type DevTrackId } from '../lib/package-track'
 import type { PackageData } from '../types'
+
+const TRACK_BADGE: Record<DevTrackId, string> = {
+  mern: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/25',
+  'react-native': 'bg-sky-500/10 text-sky-300 ring-sky-500/25',
+  flutter: 'bg-cyan-500/10 text-cyan-300 ring-cyan-500/25',
+}
 
 interface Props {
   pkg: PackageData
@@ -11,6 +18,7 @@ export function PackageCard({ pkg }: Props) {
   const latest = pkg.meta['dist-tags']?.latest ?? '0.0.0'
   const modified = pkg.meta.time?.modified
   const keywords = pkg.meta.keywords ?? []
+  const track = inferPackageTrack(pkg)
 
   return (
     <Link
@@ -21,9 +29,15 @@ export function PackageCard({ pkg }: Props) {
       <div className="flex items-start justify-between gap-3 mb-2 pr-6">
         <h3 className="font-medium text-zinc-100 truncate">{pkg.name}</h3>
       </div>
-      <div className="mb-3">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-300 font-mono ring-1 ring-inset ring-violet-500/20">
           v{latest}
+        </span>
+        <span
+          className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md ring-1 ring-inset ${TRACK_BADGE[track]}`}
+          title={TRACK_META[track].description}
+        >
+          {TRACK_META[track].shortLabel}
         </span>
       </div>
       <p className="text-sm text-zinc-400 line-clamp-2 mb-4 min-h-[2.5rem]">

@@ -4,6 +4,12 @@ import { usePackages } from '../context/PackagesContext'
 import { PackageCard } from '../components/PackageCard'
 import { Skeleton } from '../components/Skeleton'
 import { useMeta } from '../hooks/useMeta'
+import {
+  inferPackageTrack,
+  TRACK_META,
+  TRACK_ORDER,
+  type DevTrackId,
+} from '../lib/package-track'
 
 type SortKey = 'name' | 'downloads' | 'updated'
 
@@ -11,6 +17,7 @@ export function Packages() {
   const { packages, loading } = usePackages()
   const pkgCount = packages.length
   const [search, setSearch] = useState('')
+  const [trackFilter, setTrackFilter] = useState<DevTrackId | 'all'>('all')
   const [sort, setSort] = useState<SortKey>('downloads')
 
   useMeta({
@@ -18,39 +25,55 @@ export function Packages() {
       'All npm Packages — Search & Browse · Aftab Ahmad Khan TypeScript Open-Source Modules',
     description:
       pkgCount > 0
-        ? `Browse all ${pkgCount} open-source npm packages by Aftab Ahmad Khan: TypeScript developer tools, AI / LLM infrastructure, monorepo utilities, supply-chain security, image optimization, file uploads, env loading, prompt versioning, and more. Search by name, description, or keyword.`
-        : 'Browse open-source npm packages by Aftab Ahmad Khan: TypeScript developer tools, AI / LLM infrastructure, monorepo utilities, supply-chain security, image optimization, file uploads, env loading, prompt versioning, and more. Search by name, description, or keyword.',
+        ? `Browse all ${pkgCount} open-source npm packages by Aftab Ahmad Khan (MERN, React Native & Flutter stacks): TypeScript developer tools, AI / LLM infrastructure, monorepo utilities, mobile helpers, and more. Filter by stack, search by keyword.`
+        : 'Browse open-source npm packages by Aftab Ahmad Khan across MERN, React Native, and Flutter stacks. Filter by stack, search by keyword.',
     keywords:
-      'npm packages list, open source typescript packages, node.js modules, developer tools, aftab ahmad khan packages, monodrift, picsmith, mcp-bootstrap, fileflux, chainsentry, envrunes, llmtoken, promptver, reconnecting-stream, cost-limiter, mongoose-advanced-plugin',
+      'npm packages list, MERN stack, React Native npm, Flutter dart packages, open source typescript, aftab ahmad khan packages, monodrift, picsmith, mcp-bootstrap',
     canonical: 'https://npm-packages-modules.dev/packages',
   })
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
-    let list = !q
-      ? [...packages]
-      : packages.filter((p) => {
-          const haystack = [
-            p.name,
-            p.meta.description ?? '',
-            ...(p.meta.keywords ?? []),
-          ]
-            .join(' ')
-            .toLowerCase()
-          return haystack.includes(q)
-        })
+    let list =
+      trackFilter === 'all'
+        ? [...packages]
+        : packages.filter((p) => inferPackageTrack(p) === trackFilter)
+
+    if (q) {
+      list = list.filter((p) => {
+        const haystack = [
+          p.name,
+          p.meta.description ?? '',
+          ...(p.meta.keywords ?? []),
+        ]
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(q)
+      })
+    }
 
     list.sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name)
       if (sort === 'downloads')
         return (b.weekly?.downloads ?? 0) - (a.weekly?.downloads ?? 0)
-      // updated
       const ta = new Date(a.meta.time?.modified ?? 0).getTime()
       const tb = new Date(b.meta.time?.modified ?? 0).getTime()
       return tb - ta
     })
     return list
-  }, [packages, search, sort])
+  }, [packages, search, sort, trackFilter])
+
+  const trackCounts = useMemo(() => {
+    const c: Record<DevTrackId, number> = {
+      mern: 0,
+      'react-native': 0,
+      flutter: 0,
+    }
+    for (const p of packages) {
+      c[inferPackageTrack(p)]++
+    }
+    return c
+  }, [packages])
 
   return (
     <div className="space-y-6">
@@ -59,8 +82,24 @@ export function Packages() {
           Packages
         </h1>
         <p className="text-sm text-zinc-400 mt-1.5">
-          {packages.length} packages on npm registry
+          {packages.length} packages on npm · MERN, React Native & Flutter stacks
         </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <TrackFilterChip
+          active={trackFilter === 'all'}
+          onClick={() => setTrackFilter('all')}
+          label={`All (${packages.length})`}
+        />
+        {TRACK_ORDER.map((id) => (
+          <TrackFilterChip
+            key={id}
+            active={trackFilter === id}
+            onClick={() => setTrackFilter(id)}
+            label={`${TRACK_META[id].shortLabel} (${trackCounts[id]})`}
+          />
+        ))}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -96,7 +135,24 @@ export function Packages() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-zinc-500 text-sm border border-dashed border-zinc-800 rounded-2xl">
           <SortAsc className="w-6 h-6 mx-auto mb-2 text-zinc-700" />
-          No packages match &ldquo;{search}&rdquo;
+          {packages.length === 0 ? (
+            <>
+              No packages loaded yet — check your connection and hit refresh in the header.
+            </>
+          ) : trackFilter !== 'all' && !search.trim() ? (
+            <>
+              No packages tagged as{' '}
+              <span className="text-zinc-300">{TRACK_META[trackFilter].label}</span>{' '}
+              yet — try another stack filter or clear filters.
+            </>
+          ) : (
+            <>
+              No packages match &ldquo;{search}&rdquo;
+              {trackFilter !== 'all'
+                ? ` in ${TRACK_META[trackFilter].label}`
+                : ''}
+            </>
+          )}
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -106,6 +162,30 @@ export function Packages() {
         </div>
       )}
     </div>
+  )
+}
+
+function TrackFilterChip({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+        active
+          ? 'bg-violet-500/15 text-violet-300 border-violet-500/30'
+          : 'bg-zinc-900/60 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
+      }`}
+    >
+      {label}
+    </button>
   )
 }
 

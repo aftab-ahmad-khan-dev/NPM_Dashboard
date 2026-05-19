@@ -46,7 +46,7 @@ export function Sidebar({ open, onClose }: Props) {
             <div className='leading-tight'>
               <div className='text-sm font-semibold text-zinc-100'>NPM Hub</div>
               <div className='text-[10px] uppercase tracking-wider text-zinc-500'>
-                dashboard
+                MERN · RN · Flutter
               </div>
             </div>
           </div>

@@ -16,7 +16,6 @@ import {
   LineChart,
   Linkedin,
   MapPin,
-  Monitor,
   Package,
   Rocket,
   Server,
@@ -24,6 +23,7 @@ import {
   ShoppingBag,
   Smartphone,
   Sparkles,
+  TabletSmartphone,
   Wrench,
   Zap,
 } from "lucide-react";
@@ -45,13 +45,13 @@ export function About() {
 
   useMeta({
     title:
-      "About Aftab Ahmad Khan — Senior MERN Stack Developer, React Native, Tauri, PWA & Open-Source npm Author",
+      "About Aftab Ahmad Khan — Senior MERN, React Native & Flutter Developer · Open-Source npm Author",
     description:
       pkgCount > 0
-        ? `Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN apps, Progressive Web Apps (PWA), Tauri desktop apps, React Native mobile apps, Shopify stores, AI-integrated platforms and ${pkgCount}+ open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.`
-        : "Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN apps, Progressive Web Apps (PWA), Tauri desktop apps, React Native mobile apps, Shopify stores, AI-integrated platforms and open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.",
+        ? `Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN web platforms, React Native mobile apps, Flutter cross-platform apps, AI-integrated products and ${pkgCount}+ open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.`
+        : "Hi, I’m Aftab Ahmad Khan — a senior full-stack engineer from Multan, Pakistan with 7+ years of experience shipping 75+ projects. I build MERN web platforms, React Native mobile apps, Flutter cross-platform apps, AI-integrated products and open-source npm packages including monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken and promptver.",
     keywords:
-      "aftab ahmad khan, mr-aftab-ahmad-khan, aftab-ahmad-khan-dev, senior mern stack developer, full stack engineer, react developer, react native developer, tauri developer, tauri js, progressive web app developer, pwa, shopify developer, shopify expert, mongodb expert, node.js developer, express.js, next.js developer, typescript engineer, ai integration developer, openai integration, llm developer, freelance developer pakistan, multan developer, hire mern developer, hire react native developer, npm package author, open source maintainer, evolvo technologies, aftabahmadkhan.online, npm packages, monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken, promptver, mongoose-advanced-plugin, reconnecting-stream, cost-limiter, fileflux, supply chain security, ai infrastructure",
+      "aftab ahmad khan, mr-aftab-ahmad-khan, MERN stack developer, React Native developer, Flutter developer, dart, senior full stack engineer, npm package author, open source maintainer, aftabahmadkhan.online, npm packages, monodrift, picsmith, mcp-bootstrap, chainsentry, envrunes, llmtoken, promptver, mongoose-advanced-plugin, reconnecting-stream, cost-limiter, fileflux",
     canonical: "https://npm-packages-modules.dev/about",
   });
 
@@ -109,12 +109,14 @@ const TECH_GROUPS: TechGroup[] = [
     ],
   },
   {
-    title: "Mobile & Desktop",
-    description: "Native apps for every screen.",
+    title: "Mobile · RN & Flutter",
+    description: "Ship native-quality iOS & Android from React Native or Flutter — Expo, Dart tooling and store pipelines.",
     icon: <Smartphone className='w-3.5 h-3.5' />,
     accent: "sky",
     items: [
       { slug: "react", name: "React Native", color: "0FA9E6" },
+      { slug: "flutter", name: "Flutter", color: "02569B" },
+      { slug: "dart", name: "Dart", color: "0175C2" },
       { slug: "expo", name: "Expo", forceWhite: true },
       { slug: "tauri", name: "Tauri", color: "FFC131" },
       { slug: "electron", name: "Electron", color: "47848F" },
@@ -214,18 +216,18 @@ function PersonalHero({ npmPackageCount }: { npmPackageCount: number }) {
           <p className='text-base sm:text-lg text-zinc-300 mt-5 max-w-2xl leading-relaxed'>
             <strong className='text-zinc-100'>Senior Full-Stack Engineer</strong>{" "}
             with <strong className='text-zinc-100'>7+ years</strong> and{" "}
-            <strong className='text-zinc-100'>75+ shipped projects</strong>. I build{" "}
-            <span className='text-violet-300'>MERN</span> web apps,{" "}
-            <span className='text-cyan-300'>PWAs</span>,{" "}
-            <span className='text-amber-300'>Tauri desktop apps</span>,{" "}
-            <span className='text-sky-300'>React Native</span> mobile apps,{" "}
-            <span className='text-emerald-300'>Shopify</span> stores and{" "}
-            <span className='text-rose-300'>AI-integrated</span> platforms plus{" "}
+            <strong className='text-zinc-100'>75+ shipped projects</strong>. My work is
+            organized around three stacks —{" "}
+            <span className='text-violet-300'>MERN</span> web platforms,{" "}
+            <span className='text-sky-300'>React Native</span> mobile apps, and{" "}
+            <span className='text-cyan-300'>Flutter</span> cross-platform apps — plus{" "}
+            <span className='text-rose-300'>AI-native</span> features where they belong.
+            I also ship{" "}
             {npmPackageCount > 0 ? (
               <>{npmPackageCount}+ </>
             ) : null}
-            open-source <span className='text-fuchsia-300'>npm packages</span> used
-            by developers worldwide.
+            open-source <span className='text-fuchsia-300'>npm packages</span> used by
+            developers worldwide.
           </p>
 
           {/* Quick context row */}
@@ -282,7 +284,7 @@ function PersonalHero({ npmPackageCount }: { npmPackageCount: number }) {
           <div className='relative rounded-2xl border border-zinc-800 bg-zinc-950/80 backdrop-blur p-5 sm:p-6'>
             <div className='flex items-center justify-between mb-5'>
               <div className='text-[10px] uppercase tracking-[0.18em] text-zinc-500'>
-                Career snapshot
+                Three-stack snapshot
               </div>
               <div className='inline-flex items-center gap-1.5 text-[10px] text-emerald-300'>
                 <span className='h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse' />
@@ -293,8 +295,8 @@ function PersonalHero({ npmPackageCount }: { npmPackageCount: number }) {
               <StatTile value='7+' label='Years building' accent='violet' />
               <StatTile value='75+' label='Projects shipped' accent='fuchsia' />
               <StatTile value='50+' label='MERN full-stack apps' accent='emerald' />
-              <StatTile value='20+' label='Shopify stores' accent='amber' />
               <StatTile value='15+' label='React Native apps' accent='sky' />
+              <StatTile value='10+' label='Flutter apps' accent='amber' />
               <StatTile
                 value={npmPackageCount > 0 ? String(npmPackageCount) : "—"}
                 label='npm packages'
@@ -329,7 +331,7 @@ function TechStack() {
         icon={<Code2 className='w-3.5 h-3.5' />}
         label='Tech stack'
         title='The toolkit I ship with every day.'
-        subtitle='A pragmatic, type-safe, production-tested stack across frontend, backend, mobile, desktop and AI.'
+        subtitle='MERN, React Native & Flutter — plus TypeScript, cloud and AI adjacent tooling.'
         accent='cyan'
       />
       <div className='grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5'>
@@ -390,10 +392,10 @@ interface BuildItem {
 const BUILDS: BuildItem[] = [
   {
     icon: <Server className='w-5 h-5' />,
-    title: "MERN Full-Stack Apps",
+    title: "MERN Full-Stack Platforms",
     subtitle: "MongoDB · Express · React · Node.js",
     description:
-      "Enterprise web apps, real-time dashboards, SaaS platforms, multi-vendor marketplaces, REST/GraphQL APIs, role-based auth, payments, websockets — production-grade architecture from day one.",
+      "Production SaaS, dashboards, marketplaces and APIs — auth, payments, websockets, queues, observability and AI features wired into the same battle-tested MERN architecture.",
     accent: "emerald",
     tags: ["MongoDB", "Express", "React", "Node.js", "Next.js", "TypeScript"],
     count: "50+ delivered",
@@ -401,57 +403,29 @@ const BUILDS: BuildItem[] = [
   {
     icon: <Smartphone className='w-5 h-5' />,
     title: "React Native Mobile Apps",
-    subtitle: "iOS · Android · Cross-platform",
+    subtitle: "iOS · Android · One codebase",
     description:
-      "Native-feeling iOS and Android apps with push notifications, in-app purchases, camera, geolocation, offline-first sync, deep linking, biometric auth and App Store / Play Store delivery.",
+      "Native-grade experiences with Expo or bare workflow — push, IAP, secure storage, offline sync, deep links, native modules and disciplined release trains to the stores.",
     accent: "sky",
     tags: ["React Native", "Expo", "TypeScript", "Native Modules"],
     count: "15+ delivered",
   },
   {
-    icon: <Monitor className='w-5 h-5' />,
-    title: "Desktop Apps with Tauri",
-    subtitle: "Lightweight · Native · Secure",
+    icon: <TabletSmartphone className='w-5 h-5' />,
+    title: "Flutter & Dart Apps",
+    subtitle: "Material · Cupertino · Skia UI",
     description:
-      "Tiny, fast, memory-safe desktop apps built with Tauri (Rust core + web frontend) for Windows, macOS and Linux. Auto-updates, file-system access, system tray, native menus.",
-    accent: "amber",
-    tags: ["Tauri", "Rust", "React", "Electron alt"],
-  },
-  {
-    icon: <Globe className='w-5 h-5' />,
-    title: "Progressive Web Apps (PWA)",
-    subtitle: "Offline · Installable · Push",
-    description:
-      "Installable, offline-capable web experiences with service workers, background sync, push notifications and Lighthouse-perfect performance budgets.",
+      "Cross-platform mobile (and lean desktop/web targets where it fits) with Flutter’s widget model, isolates for concurrency, platform channels, codegen and performance profiling baked in.",
     accent: "cyan",
-    tags: ["PWA", "Service Workers", "Workbox", "Next.js", "Vite"],
-  },
-  {
-    icon: <ShoppingBag className='w-5 h-5' />,
-    title: "Shopify Stores & Apps",
-    subtitle: "Themes · Apps · Integrations",
-    description:
-      "Custom Liquid themes, private & public Shopify apps, Storefront API, Admin GraphQL, Shopify Functions, Metaobjects, custom checkout flows and third-party integrations.",
-    accent: "emerald",
-    tags: ["Liquid", "Polaris", "Storefront API", "Shopify Functions"],
-    count: "20+ stores",
-  },
-  {
-    icon: <Brain className='w-5 h-5' />,
-    title: "AI-Integrated Platforms",
-    subtitle: "OpenAI · LLMs · Automation",
-    description:
-      "Production AI features: streaming chat, RAG pipelines, vector search, AI agents, prompt engineering, voice & vision, automated workflows — integrated into MERN and React Native apps.",
-    accent: "rose",
-    tags: ["OpenAI", "Anthropic", "LangChain", "Vector DBs"],
-    count: "10+ shipped",
+    tags: ["Flutter", "Dart", "Bloc / Riverpod", "Platform channels"],
+    count: "10+ delivered",
   },
   {
     icon: <Package className='w-5 h-5' />,
     title: "Open-Source npm Packages",
     subtitle: "TypeScript · MIT · Dual ESM+CJS",
     description:
-      "Tiny, focused, well-typed Node.js modules for developer tooling, supply-chain security, AI infrastructure, image pipelines, real-time streaming and MongoDB — all open-source.",
+      "Focused libraries for developer tooling, AI infrastructure, security, media pipelines and MongoDB — consumed across MERN, React Native and Flutter workflows.",
     accent: "violet",
     tags: ["TypeScript", "tsup", "vitest", "ESM", "CJS"],
   },
@@ -463,11 +437,11 @@ function WhatIBuild({ npmPackageCount }: { npmPackageCount: number }) {
       <SectionHeader
         icon={<Layers className='w-3.5 h-3.5' />}
         label='What I build'
-        title='From npm packages to full-stack platforms.'
-        subtitle='Seven specializations, one engineer — each shipped to production at scale.'
+        title='Three stacks plus open-source npm modules.'
+        subtitle='MERN web, React Native mobile and Flutter — each shipped with production rigor, plus libraries published for everyone.'
         accent='violet'
       />
-      <div className='grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5'>
+      <div className='grid sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5'>
         {BUILDS.map((b) => {
           const a = ACCENTS[b.accent];
           const countBadge =
@@ -758,7 +732,7 @@ function AboutPlatform({ npmPackageCount }: { npmPackageCount: number }) {
           accent='cyan'
         >
           {npmPackageCount > 0 ? `${npmPackageCount} packages` : "Packages"}, one searchable,
-          sortable grid. Filter by name, description, or keyword. Drill into any package for the
+          sortable grid. Filter by MERN / React Native / Flutter signals, search by text,
           full release history and a one-click copy install command.
         </FeatureCard>
         <FeatureCard
@@ -921,7 +895,7 @@ function Connect() {
         icon={<Rocket className='w-3.5 h-3.5' />}
         label='Let’s work together'
         title='Hire me, collaborate, or just say hi.'
-        subtitle='Available for full-stack, mobile, desktop and AI engineering — fixed, hourly or long-term.'
+        subtitle='Available for MERN, React Native, Flutter & AI-augmented products — fixed, hourly or long-term.'
         accent='violet'
       />
       <div className='grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4'>

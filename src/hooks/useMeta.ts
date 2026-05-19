@@ -8,9 +8,9 @@ interface MetaOptions {
 }
 
 const DEFAULT_TITLE =
-  'Aftab Ahmad Khan — Senior MERN, React Native, Tauri & PWA Developer · npm Author'
+  'Aftab Ahmad Khan — Senior MERN, React Native & Flutter Developer · npm Author'
 const DEFAULT_DESCRIPTION =
-  'Aftab Ahmad Khan — Senior Full-Stack Engineer (7+ yrs, 75+ projects). MERN web apps, Tauri desktop apps, React Native mobile apps, Progressive Web Apps, Shopify stores, AI/LLM platforms and open-source npm packages.'
+  'Aftab Ahmad Khan — Senior Full-Stack Engineer (7+ yrs, 75+ projects). MERN platforms, React Native & Flutter apps, AI-enhanced products and open-source npm packages.'
 
 function setMeta(name: string, value: string, attr: 'name' | 'property' = 'name') {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${name}"]`)
