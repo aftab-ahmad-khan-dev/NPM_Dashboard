@@ -19,8 +19,9 @@ interface State {
 
 const Ctx = createContext<State | null>(null)
 
-const PACKAGE_FETCH_BATCH = 10
-const PACKAGE_RETRY_DELAY_MS = 600
+const PACKAGE_FETCH_BATCH = 3
+const PACKAGE_RETRY_DELAY_MS = 800
+const BATCH_COOLDOWN_MS = 400
 
 async function mapInBatches<T, R>(
   items: T[],
@@ -32,19 +33,21 @@ async function mapInBatches<T, R>(
     const chunk = items.slice(i, i + batchSize)
     const part = await Promise.all(chunk.map((item) => fn(item)))
     out.push(...part)
+    if (i + batchSize < items.length && BATCH_COOLDOWN_MS > 0) {
+      await new Promise((r) => setTimeout(r, BATCH_COOLDOWN_MS))
+    }
   }
   return out
 }
 
 async function loadPackageData(name: string): Promise<PackageData | null> {
   const fetchOnce = async (): Promise<PackageData> => {
-    const [meta, weekly, monthly, daily, monthlyRange] = await Promise.all([
-      fetchPackageMeta(name),
-      fetchDownloads(name, 'last-week'),
-      fetchDownloads(name, 'last-month'),
-      fetchDownloadsRange(name, 'last-week'),
-      fetchDownloadsRange(name, 'last-month'),
-    ])
+    /* Sequential calls — parallel fan-out was hammering registry + downloads APIs (429). */
+    const meta = await fetchPackageMeta(name)
+    const weekly = await fetchDownloads(name, 'last-week')
+    const monthly = await fetchDownloads(name, 'last-month')
+    const daily = await fetchDownloadsRange(name, 'last-week')
+    const monthlyRange = await fetchDownloadsRange(name, 'last-month')
     return { name, meta, weekly, monthly, daily, monthlyRange }
   }
   try {

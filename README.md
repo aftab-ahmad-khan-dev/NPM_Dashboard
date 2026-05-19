@@ -61,7 +61,7 @@ src/
 
 Nothing to edit when you publish a new package: the app calls npm’s search API (`maintainer:` + `author:`) on every refresh and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
 
-Loads run in **small batches** with a **retry** if a package fails to fetch — that reduces npm throttling and stops weekly/monthly totals from jumping when some requests randomly fail.
+Loads run in **small batches** with a **cooldown between batches**, **sequential** registry/downloads calls per package (avoids npm **429** bursts), and **automatic retries** on **429/503** with backoff + `Retry-After`.
 
 If totals still drift because search occasionally omits a package, add those names to **`NPM_PACKAGES_PINNED`** in `src/data/packages.ts` (always merged with discovery).
 

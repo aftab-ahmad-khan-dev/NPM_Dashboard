@@ -3,12 +3,38 @@ import type { DownloadsPoint, DownloadsRange, NpmRegistryMeta } from '../types'
 const REGISTRY = 'https://registry.npmjs.org'
 const DOWNLOADS = 'https://api.npmjs.org/downloads'
 
-/** Avoid stale package lists/stats after refresh — npm sends cacheable responses. */
-function npmFetch(input: string | URL): Promise<Response> {
-  return fetch(input, {
+const NPM_FETCH_MAX_ATTEMPTS = 7
+
+function retryAfterMs(res: Response): number | null {
+  const raw = res.headers.get('Retry-After')
+  if (!raw) return null
+  const seconds = Number.parseInt(raw, 10)
+  if (!Number.isNaN(seconds)) return seconds * 1000
+  const when = Date.parse(raw)
+  if (!Number.isNaN(when)) return Math.max(0, when - Date.now())
+  return null
+}
+
+/** npm/registry + downloads APIs rate-limit aggressively; retry on 429/503 with backoff + Retry-After. */
+async function npmFetch(input: string | URL, attempt = 0): Promise<Response> {
+  const res = await fetch(input, {
     cache: 'no-store',
     headers: { Accept: 'application/json' },
   })
+  if (
+    (res.status === 429 || res.status === 503) &&
+    attempt < NPM_FETCH_MAX_ATTEMPTS - 1
+  ) {
+    const fromHeader = retryAfterMs(res)
+    const backoff = 700 * 2 ** attempt
+    const wait = Math.min(
+      30_000,
+      Math.max(fromHeader ?? 0, backoff),
+    )
+    await new Promise((r) => setTimeout(r, wait))
+    return npmFetch(input, attempt + 1)
+  }
+  return res
 }
 
 interface NpmSearchResponse {
