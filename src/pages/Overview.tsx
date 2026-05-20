@@ -53,7 +53,7 @@ const ACCENT_GRADIENTS = [
 ];
 
 export function Overview() {
-  const { packages, loading, lastUpdated } = usePackages();
+  const { packages, loading, lastUpdated, refreshGeneration } = usePackages();
   const pkgCount = packages.length;
 
   useMeta({
@@ -69,10 +69,11 @@ export function Overview() {
   });
 
   const [orgRepos, setOrgRepos] = useState<OrgRepo[]>([]);
-  const [ghLoading, setGhLoading] = useState(true);
+  const [ghLoading, setGhLoading] = useState(false);
   const [ghErr, setGhErr] = useState<string | null>(null);
 
   useEffect(() => {
+    if (refreshGeneration === 0) return;
     let cancelled = false;
     setGhLoading(true);
     fetchOrgPublicRepos(GITHUB_ORG_UNPUBLISHED_SCAN)
@@ -93,7 +94,7 @@ export function Overview() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshGeneration]);
 
   const visibleOrgRepos = useMemo(
     () => orgRepos.filter((r) => !isGithubOrgRepoIgnored(r.name)),
@@ -231,13 +232,33 @@ function HeroBanner({
 
       <div className='relative grid lg:grid-cols-3 gap-6 items-end'>
         <div className='lg:col-span-2 min-w-0'>
-          <div className='inline-flex items-center gap-2 mb-4 px-2.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5'>
+          <div
+            className={`inline-flex items-center gap-2 mb-4 px-2.5 py-1 rounded-full border ${
+              lastUpdated
+                ? 'border-emerald-500/20 bg-emerald-500/5'
+                : 'border-zinc-600/40 bg-zinc-800/40'
+            }`}
+          >
             <span className='relative flex h-1.5 w-1.5'>
-              <span className='absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70 animate-ping' />
-              <span className='relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400' />
+              {lastUpdated ? (
+                <>
+                  <span className='absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70 animate-ping' />
+                  <span className='relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400' />
+                </>
+              ) : (
+                <span className='relative inline-flex rounded-full h-1.5 w-1.5 bg-zinc-500' />
+              )}
             </span>
-            <span className='text-[11px] tracking-wide text-emerald-300'>
-              LIVE · synced {timeAgo(lastUpdated)}
+            <span
+              className={`text-[11px] tracking-wide ${
+                lastUpdated ? 'text-emerald-300' : 'text-zinc-400'
+              }`}
+            >
+              {lastUpdated ? (
+                <>LIVE · synced {timeAgo(lastUpdated)}</>
+              ) : (
+                <>Idle · use Refresh (top right) to load from npm</>
+              )}
             </span>
           </div>
 

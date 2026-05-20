@@ -50,9 +50,9 @@ export function Header({ onMenuClick }: Props) {
         <button
           onClick={refresh}
           disabled={loading}
-          title="Re-loads your package list from npm search plus metadata and downloads. New releases appear once npm’s search index includes them (can take a few minutes)."
+          title='Loads package list, stats, and org repo info from npm + GitHub. Nothing is fetched until you use this.'
           className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-zinc-100 disabled:opacity-40 transition-colors"
-          aria-label="Refresh data"
+          aria-label="Load or refresh npm and GitHub data"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>

@@ -49,7 +49,7 @@ export function SplashGate({ children }: { children: ReactNode }) {
           </div>
           <div className='text-center space-y-2 max-w-sm'>
             <p className='text-sm font-semibold tracking-tight text-zinc-100'>npm Packages Dashboard</p>
-            <p className='text-xs text-zinc-500'>Loading registry data…</p>
+            <p className='text-xs text-zinc-500'>Tap refresh (top right) to load from npm and GitHub.</p>
           </div>
           <div className='h-1 w-36 overflow-hidden rounded-full bg-zinc-800'>
             <div className='h-full w-2/5 rounded-full bg-gradient-to-r from-[#CB3837] to-violet-500 animate-pulse' />

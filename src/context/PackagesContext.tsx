@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NPM_MAINTAINER_USERNAME, NPM_PACKAGES_PINNED, PACKAGE_DENYLIST } from '../data/packages'
 import {
@@ -15,6 +15,8 @@ interface State {
   error: string | null
   refresh: () => void
   lastUpdated: Date | null
+  /** Increments on each header refresh so GitHub org data can follow the same manual trigger. */
+  refreshGeneration: number
 }
 
 const Ctx = createContext<State | null>(null)
@@ -64,9 +66,10 @@ async function loadPackageData(name: string): Promise<PackageData | null> {
 
 export function PackagesProvider({ children }: { children: ReactNode }) {
   const [packages, setPackages] = useState<PackageData[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [refreshGeneration, setRefreshGeneration] = useState(0)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -93,12 +96,13 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  useEffect(() => {
-    load()
+  const refresh = useCallback(async () => {
+    setRefreshGeneration((g) => g + 1)
+    await load()
   }, [load])
 
   return (
-    <Ctx.Provider value={{ packages, loading, error, refresh: load, lastUpdated }}>
+    <Ctx.Provider value={{ packages, loading, error, refresh, lastUpdated, refreshGeneration }}>
       {children}
     </Ctx.Provider>
   )

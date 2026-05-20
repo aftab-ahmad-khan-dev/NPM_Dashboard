@@ -1,6 +1,6 @@
 # NPM Packages Dashboard
 
-Standalone monitoring dashboard for npm packages you publish under your npm username (discovered automatically from the public registry on each load / refresh).
+Standalone monitoring dashboard for npm packages you publish under your npm username. **Nothing hits npm or GitHub until you press Refresh** in the header; each run rediscovers packages from the public registry search (`maintainer:` / `author:`) and reloads stats.
 
 ## Stack
 
@@ -59,7 +59,7 @@ src/
 
 ## Packages list
 
-Nothing to edit when you publish a new package: the app calls npm’s search API (`maintainer:` + `author:`) on every refresh and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
+Nothing to edit when you publish a new package: use **Refresh** in the header — the app then calls npm’s search API (`maintainer:` + `author:`) and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
 
 Loads run in **small batches** with a **cooldown between batches**, **sequential** registry/downloads calls per package (avoids npm **429** bursts), and **automatic retries** on **429/503** with backoff + `Retry-After`.
 

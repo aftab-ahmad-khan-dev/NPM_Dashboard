@@ -29,7 +29,7 @@ import {
 
 export function PackageDetail() {
   const { name } = useParams<{ name: string }>()
-  const { packages, loading } = usePackages()
+  const { packages, loading, lastUpdated } = usePackages()
   const pkg = packages.find((p) => p.name === name)
   const [copied, setCopied] = useState(false)
 
@@ -57,6 +57,19 @@ export function PackageDetail() {
   }
 
   if (!pkg) {
+    if (lastUpdated === null) {
+      return (
+        <div className='text-center py-16'>
+          <p className='text-zinc-400'>
+            Data is not loaded yet. Use <span className='font-medium text-zinc-200'>Refresh</span> in the header
+            to fetch packages, then open this page again.
+          </p>
+          <Link to='/packages' className='text-violet-400 hover:text-violet-300 mt-4 inline-block text-sm'>
+            ← Back to packages
+          </Link>
+        </div>
+      )
+    }
     return (
       <div className="text-center py-16">
         <p className="text-zinc-400">Package <span className="font-mono">{name}</span> not found</p>
