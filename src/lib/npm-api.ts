@@ -58,10 +58,31 @@ export async function fetchPackagesDownloadsBatch(names: string[]): Promise<
     cache: 'no-store',
   })
 
-  if (!res.ok)
-    throw new Error(`downloads aggregate failed: ${res.status} ${await res.text()}`)
+  const rawBody = await res.text()
 
-  const data = (await res.json()) as unknown
+  if (!res.ok) {
+    let msg = rawBody.replace(/\s+/g, ' ').trim().slice(0, 500)
+    try {
+      const parsed = JSON.parse(rawBody) as { error?: unknown; detail?: unknown }
+      let e = ''
+      if (typeof parsed?.error === 'string' && parsed.error.trim())
+        e = parsed.error.trim()
+      if (!e.length) throw new Error('no-json-error')
+      if (typeof parsed.detail === 'string' && parsed.detail.trim())
+        e = `${e} ${parsed.detail.trim()}`
+      msg = e
+    } catch {
+      /* plain text upstream */
+    }
+    throw new Error(`Downloads API ${res.status}: ${msg || 'no body'}`)
+  }
+
+  let data: unknown
+  try {
+    data = JSON.parse(rawBody) as unknown
+  } catch {
+    throw new Error('Downloads API: response was not valid JSON')
+  }
   if (typeof data !== 'object' || data === null) {
     throw new Error('downloads aggregate: unexpected response shape')
   }

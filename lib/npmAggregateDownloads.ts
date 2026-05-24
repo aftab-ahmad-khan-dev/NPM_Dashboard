@@ -1,13 +1,32 @@
 /**
- * Runs all npm downloads API calls in one paced sequence (ideal for serverless / one POST from the SPA).
- * Lives under `/lib` (not `/src`) so Vercel can bundle it reliably with `api/` routes.
+ * Runs npm downloads API calls in one paced sequence (Vite middleware + serverless worker).
+ * Type shapes mirror `src/types.ts`; keep in sync manually (workers must not import from `src/`).
  */
-import type {
-  DownloadsDay,
-  DownloadsPoint,
-  DownloadsRange,
-  PackageDownloadsBundle,
-} from '../src/types'
+interface DownloadsDay {
+  downloads: number
+  day: string
+}
+
+interface DownloadsPoint {
+  downloads: number
+  start: string
+  end: string
+  package: string
+}
+
+interface DownloadsRange {
+  start: string
+  end: string
+  package: string
+  downloads: DownloadsDay[]
+}
+
+export type PackageDownloadsBundle = {
+  weekly: DownloadsPoint | null
+  monthly: DownloadsPoint | null
+  daily: DownloadsRange | null
+  monthlyRange: DownloadsRange | null
+}
 
 const NPM_DOWNLOADS_BASE = 'https://api.npmjs.org/downloads/'
 
