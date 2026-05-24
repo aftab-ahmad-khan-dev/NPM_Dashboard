@@ -46,6 +46,14 @@ export interface DownloadsRange {
   downloads: DownloadsDay[]
 }
 
+/** Point + range aggregates used by dashboards (shared client + downloads worker). */
+export type PackageDownloadsBundle = {
+  weekly: DownloadsPoint | null
+  monthly: DownloadsPoint | null
+  daily: DownloadsRange | null
+  monthlyRange: DownloadsRange | null
+}
+
 export interface PackageData {
   name: string
   meta: NpmRegistryMeta

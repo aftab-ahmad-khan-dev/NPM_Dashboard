@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NPM_MAINTAINER_USERNAME, NPM_PACKAGES_PINNED, PACKAGE_DENYLIST } from '../data/packages'
 import {
@@ -42,7 +42,7 @@ async function mapInBatches<T, R>(
 
 export function PackagesProvider({ children }: { children: ReactNode }) {
   const [packages, setPackages] = useState<PackageData[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshGeneration, setRefreshGeneration] = useState(0)
@@ -93,6 +93,10 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const refresh = useCallback(async () => {
     setRefreshGeneration((g) => g + 1)

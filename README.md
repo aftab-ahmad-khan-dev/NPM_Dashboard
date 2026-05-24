@@ -1,6 +1,6 @@
 # NPM Packages Dashboard
 
-Standalone monitoring dashboard for npm packages you publish under your npm username. **Nothing hits npm or GitHub until you press Refresh** in the header; each run rediscovers packages from the public registry search (`maintainer:` / `author:`) and reloads stats.
+Standalone monitoring dashboard for npm packages you publish under your npm username. On load, the app discovers packages via the registry search (`maintainer:` / `author:`), then **loads download stats through one POST to your `/api/package-downloads` serverless worker** so the browser stops spamming npm and tripping rate limits (429).
 
 ## Stack
 
@@ -13,9 +13,9 @@ Standalone monitoring dashboard for npm packages you publish under your npm user
 No standalone backend runtime in the SPA bundle. Calls go to:
 
 - **`registry.npmjs.org`** — package search & metadata (**browser → registry**, CORS allowed).
-- **`/api/npm-downloads?p=…`** — forwards **`api.npmjs.org/downloads/…`** from the [**Vercel serverless**](https://vercel.com/docs/functions) handler in `api/npm-downloads.ts`. Browsers hit your own origin → **no CORS** failures on `*.vercel.app`. In dev, Vite proxies the same path to npm.
+- **`POST /api/package-downloads`** — **`api/package-downloads.ts`** aggregates **`api.npmjs.org/downloads/…`** on the server: **bulk comma URLs for unscoped** packages plus **paced single-package lookups for scoped `@scope/name`** (npm rejects scoped names in bulk). The SPA sends **one** JSON body `{ "packages": string[] }` and gets **all point + range** series back in one payload. Locally, `vite.config.ts` runs the same aggregator in middleware (no duplicate GET proxy).
 
-Downloads are fetched in batches: **comma-separated bulk URLs for unscoped packages** (4 requests per chunk of ≤100 packages: week/month × point/range). **Scoped `@npm/pkg` names cannot use npm’s bulk API** (“scoped packages are not currently supported in bulk lookups”), so those stay as **individual proxied URLs**, lightly throttled to reduce 429s.
+Downloads work is **serialized with a minimum gap between npm calls** plus **retry/backoff on 429/503**, so upstream rate limits mostly hit Vercel’s IP once per dashboard load instead of dozens of concurrent browser callbacks.
 
 ## Run
 
@@ -38,13 +38,14 @@ npm run preview    # serve the production build locally
 
 ```
 api/
-└── npm-downloads.ts           # Vercel serverless proxy → api.npmjs.org/downloads (browser CORS)
+└── package-downloads.ts     # POST { packages } → server-side npm downloads aggregation + pacing
 src/
 ├── main.tsx                   # bootstrap
 ├── index.css                     # tailwind v4 entry
 ├── data/packages.ts              # npm username, optional denylist + pinned package names
 ├── lib/
-│   ├── npm-api.ts                # registry + downloads fetchers
+│   ├── npm-api.ts                # registry + SPA → POST downloads API
+│   ├── npmAggregateDownloads.ts # shared aggregator (server + vite dev middleware)
 │   └── format.ts                 # number / date helpers
 ├── context/PackagesContext.tsx   # discovers package names from npm, then fetches metadata
 ├── components/
@@ -63,11 +64,11 @@ src/
 
 ## Packages list
 
-Nothing to edit when you publish a new package: use **Refresh** in the header — the app then calls npm’s search API (`maintainer:` + `author:`) and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
+Nothing to edit when you publish a new package: use **Refresh** in the header (or reload the tab) — the app calls npm’s search API (`maintainer:` + `author:`), then **`POST /api/package-downloads`** returns every package’s downloads in one shot. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
 
-Downloads use **comma-bulk** requests for **unscoped** packages (few round-trips); **scoped** packages use npm’s single-package URLs (bulk not supported). All download traffic goes through **`/api/npm-downloads`** in production (**Vercel**) and the Vite dev proxy. Reload uses **automatic retries** on **429/503** with backoff + `Retry-After`.
+**Note:** `npm run preview` serves only static `./dist`; **`POST /api/package-downloads` is not simulated** unless you deploy to Vercel or reuse the aggregator another way — use **`npm run dev`** locally (Vite exposes the middleware).
 
-**Note:** `npm run preview` serves only static `./dist`; download proxy routes are **not** available locally unless you run on Vercel or add your own fallback.
+If the aggregator times out (**504**) with a very large number of **scoped** packages (each requires four upstream calls), bump **`maxDuration`** in `vercel.json`/`api/package-downloads.ts` toward your plan’s cap or reduce the pinned list scope.
 
 If totals still drift because search occasionally omits a package, add those names to **`NPM_PACKAGES_PINNED`** in `src/data/packages.ts` (always merged with discovery).
 
