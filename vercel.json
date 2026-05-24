@@ -6,8 +6,7 @@
       "includeFiles": "lib/npmAggregateDownloads.ts"
     },
     "api/npm-search.ts": {
-      "maxDuration": 30,
-      "includeFiles": "lib/npmSearchValidate.ts"
+      "maxDuration": 30
     }
   },
   "framework": "vite",

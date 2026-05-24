@@ -78,6 +78,10 @@ If totals still drift because search occasionally omits a package, add those nam
 
 New publishes can take a short while to appear in npm search (registry indexing lag).
 
+## Flutter / Dart on pub.dev (no Xcode templates)
+
+Publishing **Dart or Flutter libraries** to [pub.dev](https://pub.dev) never needs Xcode. Copy the workflow from **[`templates/flutter/github-actions-pub-publish.yml`](templates/flutter/github-actions-pub-publish.yml)** into each package repo under `.github/workflows/`, add a **`PUB_TOKEN`** GitHub Actions secret from your pub.dev account, and tags like **`v1.2.3`** aligned with **`pubspec.yaml`**. Details and notes on **cloud iOS builds** (TestFlight/App Store **without Xcode on your laptop**) live in **[`templates/flutter/README.md`](templates/flutter/README.md)**.
+
 ## GitHub org card (Overview)
 
 The **[NPM-Packages-Modules](https://github.com/orgs/NPM-Packages-Modules/repositories)** org uses **umbrella monorepos** (`mern`, `react-native`, `flutter`). Those roots are **excluded** from the “unpublished vs npm name” heuristic. The **`all-packages`** repo is **ignored** entirely (meta umbrella). Only **standalone** org repos are compared to package names on the dashboard (still approximate: slug match only).

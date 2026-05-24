@@ -1,0 +1,33 @@
+# Stub: Flutter iOS on GitHub-hosted macOS — no Xcode on your PC.
+# Wire App Store Connect API key + certificates + provisioning profile (or Fastlane Match).
+#
+# Codemagic/Bitrise are often quicker for Flutter+iOS signing.
+
+name: iOS build (stub)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter doctor -v
+      - run: flutter pub get
+
+      # - run: flutter build ipa
+      #   env:
+      #     APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      #     APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+
+      - name: Next steps
+        run: |
+          echo "Uncomment flutter build ipa after provisioning + signing secrets."
+          echo "Prefer ASC API keys (.p8), not Apple ID passwords."

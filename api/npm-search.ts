@@ -1,25 +1,32 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { sanitizeNpmSearchQuery } from '../lib/npmSearchValidate'
 
-const UPSTREAM_SEARCH = 'https://registry.npmjs.org/-/v1/search'
+/**
+ * Mirrors `lib/npmSearchValidate.ts` inline so Vercel always bundles without `lib/` tracing issues.
+ */
+function sanitizePairs(pairs: [string, string][]): URLSearchParams | null {
+  const map = new Map<string, string>()
+  for (const [k, v] of pairs) map.set(k, v)
 
-const MAX_FETCH_ATTEMPTS = 8
+  const text = (map.get('text') ?? '').trim()
+  if (!text.length || text.length > 4096) return null
+  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text)) return null
 
-/** Registry search can wait on Retry-After; keep within Hobby limit. */
-export const config = { maxDuration: 30 }
+  const qs = new URLSearchParams()
+  qs.set('text', text)
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms))
-}
+  const rawSize = map.get('size')
+  if (rawSize !== undefined && rawSize !== '') {
+    const n = Number.parseInt(rawSize, 10)
+    if (Number.isFinite(n)) qs.set('size', String(Math.min(Math.max(n, 1), 250)))
+  }
 
-function retryAfterMs(res: Response): number | null {
-  const raw = res.headers.get('Retry-After')
-  if (!raw) return null
-  const seconds = Number.parseInt(raw, 10)
-  if (!Number.isNaN(seconds)) return seconds * 1000
-  const when = Date.parse(raw)
-  if (!Number.isNaN(when)) return Math.max(0, when - Date.now())
-  return null
+  const rawFrom = map.get('from')
+  if (rawFrom !== undefined && rawFrom !== '') {
+    const n = Number.parseInt(rawFrom, 10)
+    if (Number.isFinite(n)) qs.set('from', String(Math.min(Math.max(n, 0), 100_000)))
+  }
+
+  return qs
 }
 
 function qsFromReqQuery(
@@ -33,7 +40,28 @@ function qsFromReqQuery(
   push('text', raw.text)
   push('size', raw.size)
   push('from', raw.from)
-  return sanitizeNpmSearchQuery(pairs)
+  return sanitizePairs(pairs)
+}
+
+const UPSTREAM_SEARCH = 'https://registry.npmjs.org/-/v1/search'
+
+const MAX_FETCH_ATTEMPTS = 8
+
+/** Registry search can wait on Retry-After; keep within Hobby limit. */
+export const config = { maxDuration: 30 }
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
+function retryAfterMs(res: Response): number | null {
+  const ra = res.headers.get('Retry-After')
+  if (!ra) return null
+  const seconds = Number.parseInt(ra, 10)
+  if (!Number.isNaN(seconds)) return seconds * 1000
+  const when = Date.parse(ra)
+  if (!Number.isNaN(when)) return Math.max(0, when - Date.now())
+  return null
 }
 
 async function upstreamSearchOnce(qs: URLSearchParams, attempt = 0): Promise<Response> {
@@ -57,27 +85,33 @@ async function upstreamSearchOnce(qs: URLSearchParams, attempt = 0): Promise<Res
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Use GET ?text=maintainer%3A…&size=&from=' })
-    return
-  }
-
-  const qs = qsFromReqQuery(req.query as Record<string, string | string[] | undefined>)
-  if (!qs) {
-    res.status(400).json({ error: 'missing or invalid ?text=' })
-    return
-  }
-
   try {
+    if (req.method !== 'GET') {
+      res.status(405).json({ error: 'Use GET ?text=maintainer%3A…&size=&from=' })
+      return
+    }
+
+    const reqQuery =
+      typeof req.query === 'object' && req.query !== null
+        ? (req.query as Record<string, string | string[] | undefined>)
+        : {}
+    const qs = qsFromReqQuery(reqQuery)
+
+    if (!qs) {
+      res.status(400).json({ error: 'missing or invalid ?text=' })
+      return
+    }
+
     const upstream = await upstreamSearchOnce(qs)
     const body = await upstream.text()
-    res.status(upstream.status)
     const ct =
       upstream.headers.get('content-type') ?? 'application/json; charset=utf-8'
+
+    res.status(upstream.status)
     res.setHeader('Content-Type', ct)
-    res.send(body)
+    res.end(body)
   } catch (err: unknown) {
     console.error('[npm-search]', err instanceof Error ? err.stack ?? err.message : err)
-    res.status(502).json({ error: 'Upstream registry search failed' })
+    res.status(502).json({ error: 'npm search proxy failed' })
   }
 }

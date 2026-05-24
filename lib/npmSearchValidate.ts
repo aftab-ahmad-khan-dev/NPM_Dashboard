@@ -1,4 +1,5 @@
-/** Shared validation for npm `/-/v1/search` forwarding (browser → /api/npm-search → registry). */
+/** Shared validation for npm `/-/v1/search` forwarding (browser → /api/npm-search → registry).
+ * Keep validator logic aligned with duplicate in `api/npm-search.ts`. */
 
 export function sanitizeNpmSearchQuery(
   entries: Iterable<[string, string]>,
