@@ -4,6 +4,9 @@ export type { PackageDownloadsBundle } from '../types'
 
 const REGISTRY = 'https://registry.npmjs.org'
 
+/** Same-origin API — npm’s search endpoint does not reliably send browser CORS (429s mask as “CORS”). */
+const NPM_SEARCH_API = '/api/npm-search'
+
 /** Same-origin API — see `api/package-downloads.ts` (runs npm downloads work server-side, one POST). */
 export const PACKAGE_DOWNLOADS_API = '/api/package-downloads'
 
@@ -23,7 +26,7 @@ function retryAfterMs(res: Response): number | null {
   return null
 }
 
-/** Registry + npm search — ok to call directly from browsers (supports CORS). */
+/** Proxied npm search + registry metadata (downloads use `PACKAGE_DOWNLOADS_API`). */
 async function registryFetch(input: string | URL, attempt = 0): Promise<Response> {
   const res = await fetch(input, {
     cache: 'no-store',
@@ -98,7 +101,7 @@ async function collectPackageNamesFromSearch(text: string, into: Set<string>): P
       size: String(pageSize),
       from: String(from),
     })
-    const res = await registryFetch(`${REGISTRY}/-/v1/search?${qs}`)
+    const res = await registryFetch(`${NPM_SEARCH_API}?${qs}`)
     if (!res.ok) {
       throw new Error(`npm search failed for "${text}": ${res.status}`)
     }

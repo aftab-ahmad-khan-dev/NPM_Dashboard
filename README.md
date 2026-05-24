@@ -12,8 +12,9 @@ Standalone monitoring dashboard for npm packages you publish under your npm user
 
 No standalone backend runtime in the SPA bundle. Calls go to:
 
-- **`registry.npmjs.org`** — package search & metadata (**browser → registry**, CORS allowed).
-- **`POST /api/package-downloads`** — **`api/package-downloads.ts`** aggregates **`api.npmjs.org/downloads/…`** on the server: **bulk comma URLs for unscoped** packages plus **paced single-package lookups for scoped `@scope/name`** (npm rejects scoped names in bulk). The SPA sends **one** JSON body `{ "packages": string[] }` and gets **all point + range** series back in one payload. Locally, `vite.config.ts` runs the same aggregator in middleware (no duplicate GET proxy).
+- **`GET /api/npm-search?text=&size=&from=`** — forwards **`registry.npmjs.org/-/v1/search`** server-side (**same origin**—npm often omits **`Access-Control-Allow-Origin`** on responses, especially when rate-limited, so the browser falsely reports **CORS**). Retries **`429`** / **`503`** on the worker.
+- **`registry.npmjs.org/{package}`** — package **`GET`** metadata (**browser → registry**, still same public API as `npm`; if you hit CORS or 429 here too, mirror the search pattern with another proxy route).
+- **`POST /api/package-downloads`** — **`api/package-downloads.ts`** aggregates **`api.npmjs.org/downloads/…`** on the server...
 
 Downloads work is **serialized with a minimum gap between npm calls** plus **retry/backoff on 429/503**, so upstream rate limits mostly hit Vercel’s IP once per dashboard load instead of dozens of concurrent browser callbacks.
 
@@ -38,9 +39,11 @@ npm run preview    # serve the production build locally
 
 ```
 api/
+├── npm-search.ts                  # GET → registry /-/v1/search (same-origin for browsers)
 └── package-downloads.ts           # POST { packages } → server-side npm aggregation + pacing
 lib/
-└── npmAggregateDownloads.ts       # shared worker (bundled into the above + Vite dev middleware)
+├── npmSearchValidate.ts           # shared query sanitization for /api/npm-search
+└── npmAggregateDownloads.ts       # shared worker for package-downloads (+ Vite dev middleware)
 src/
 ├── main.tsx                       # bootstrap
 ├── index.css                      # tailwind v4 entry
@@ -67,7 +70,7 @@ src/
 
 Nothing to edit when you publish a new package: use **Refresh** in the header (or reload the tab) — the app calls npm’s search API (`maintainer:` + `author:`), then **`POST /api/package-downloads`** returns every package’s downloads in one shot. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
 
-**Note:** `npm run preview` serves only static `./dist`; **`POST /api/package-downloads` is not simulated** unless you deploy to Vercel or reuse the aggregator another way — use **`npm run dev`** locally (Vite exposes the middleware).
+**Note:** `npm run preview` serves only static `./dist`; **`/api/npm-search`** and **`/api/package-downloads` are not available** locally unless you run **`npm run dev`** (Vite middleware) or deploy to Vercel.
 
 If the aggregator times out (**504**) with a very large number of **scoped** packages (each requires four upstream calls), bump **`maxDuration`** in `vercel.json`/`api/package-downloads.ts` toward your plan’s cap or reduce the pinned list scope.
 
