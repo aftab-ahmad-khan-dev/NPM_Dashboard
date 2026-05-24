@@ -10,9 +10,12 @@ Standalone monitoring dashboard for npm packages you publish under your npm user
 - **React Router 6** — nested routes with `<Outlet />`
 - **lucide-react** — icons
 
-No backend; data is fetched live in the browser from:
-- `https://registry.npmjs.org/<pkg>` (metadata, versions, license, keywords, repo, etc.)
-- `https://api.npmjs.org/downloads/point/<period>/<pkg>` (download stats)
+No standalone backend runtime in the SPA bundle. Calls go to:
+
+- **`registry.npmjs.org`** — package search & metadata (**browser → registry**, CORS allowed).
+- **`/api/npm-downloads?p=…`** — forwards **`api.npmjs.org/downloads/…`** from the [**Vercel serverless**](https://vercel.com/docs/functions) handler in `api/npm-downloads.ts`. Browsers hit your own origin → **no CORS** failures on `*.vercel.app`. In dev, Vite proxies the same path to npm.
+
+Downloads are fetched in batches: **comma-separated bulk URLs for unscoped packages** (4 requests per chunk of ≤100 packages: week/month × point/range). **Scoped `@npm/pkg` names cannot use npm’s bulk API** (“scoped packages are not currently supported in bulk lookups”), so those stay as **individual proxied URLs**, lightly throttled to reduce 429s.
 
 ## Run
 
@@ -34,9 +37,10 @@ npm run preview    # serve the production build locally
 ## Project layout
 
 ```
+api/
+└── npm-downloads.ts           # Vercel serverless proxy → api.npmjs.org/downloads (browser CORS)
 src/
-├── App.tsx                       # routes
-├── main.tsx                      # bootstrap
+├── main.tsx                   # bootstrap
 ├── index.css                     # tailwind v4 entry
 ├── data/packages.ts              # npm username, optional denylist + pinned package names
 ├── lib/
@@ -61,7 +65,9 @@ src/
 
 Nothing to edit when you publish a new package: use **Refresh** in the header — the app then calls npm’s search API (`maintainer:` + `author:`) and loads whatever the registry returns. Adjust `NPM_MAINTAINER_USERNAME` in `src/data/packages.ts` if needed, or add names to `PACKAGE_DENYLIST` to hide packages from the dashboard.
 
-Loads run in **small batches** with a **cooldown between batches**, **sequential** registry/downloads calls per package (avoids npm **429** bursts), and **automatic retries** on **429/503** with backoff + `Retry-After`.
+Downloads use **comma-bulk** requests for **unscoped** packages (few round-trips); **scoped** packages use npm’s single-package URLs (bulk not supported). All download traffic goes through **`/api/npm-downloads`** in production (**Vercel**) and the Vite dev proxy. Reload uses **automatic retries** on **429/503** with backoff + `Retry-After`.
+
+**Note:** `npm run preview` serves only static `./dist`; download proxy routes are **not** available locally unless you run on Vercel or add your own fallback.
 
 If totals still drift because search occasionally omits a package, add those names to **`NPM_PACKAGES_PINNED`** in `src/data/packages.ts` (always merged with discovery).
 

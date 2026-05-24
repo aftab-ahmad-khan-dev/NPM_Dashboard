@@ -3,8 +3,7 @@ import type { ReactNode } from 'react'
 import { NPM_MAINTAINER_USERNAME, NPM_PACKAGES_PINNED, PACKAGE_DENYLIST } from '../data/packages'
 import {
   discoverPublishedPackageNames,
-  fetchDownloads,
-  fetchDownloadsRange,
+  fetchPackagesDownloadsBatch,
   fetchPackageMeta,
 } from '../lib/npm-api'
 import type { PackageData } from '../types'
@@ -21,9 +20,8 @@ interface State {
 
 const Ctx = createContext<State | null>(null)
 
-const PACKAGE_FETCH_BATCH = 3
-const PACKAGE_RETRY_DELAY_MS = 800
-const BATCH_COOLDOWN_MS = 400
+const META_FETCH_BATCH = 6
+const META_BATCH_COOLDOWN_MS = 300
 
 async function mapInBatches<T, R>(
   items: T[],
@@ -35,33 +33,11 @@ async function mapInBatches<T, R>(
     const chunk = items.slice(i, i + batchSize)
     const part = await Promise.all(chunk.map((item) => fn(item)))
     out.push(...part)
-    if (i + batchSize < items.length && BATCH_COOLDOWN_MS > 0) {
-      await new Promise((r) => setTimeout(r, BATCH_COOLDOWN_MS))
+    if (i + batchSize < items.length && META_BATCH_COOLDOWN_MS > 0) {
+      await new Promise((r) => setTimeout(r, META_BATCH_COOLDOWN_MS))
     }
   }
   return out
-}
-
-async function loadPackageData(name: string): Promise<PackageData | null> {
-  const fetchOnce = async (): Promise<PackageData> => {
-    /* Sequential calls — parallel fan-out was hammering registry + downloads APIs (429). */
-    const meta = await fetchPackageMeta(name)
-    const weekly = await fetchDownloads(name, 'last-week')
-    const monthly = await fetchDownloads(name, 'last-month')
-    const daily = await fetchDownloadsRange(name, 'last-week')
-    const monthlyRange = await fetchDownloadsRange(name, 'last-month')
-    return { name, meta, weekly, monthly, daily, monthlyRange }
-  }
-  try {
-    return await fetchOnce()
-  } catch {
-    await new Promise((r) => setTimeout(r, PACKAGE_RETRY_DELAY_MS))
-    try {
-      return await fetchOnce()
-    } catch {
-      return null
-    }
-  }
 }
 
 export function PackagesProvider({ children }: { children: ReactNode }) {
@@ -85,9 +61,31 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         const deny = new Set(PACKAGE_DENYLIST)
         names = names.filter((n) => !deny.has(n))
       }
-      const results = await mapInBatches(names, PACKAGE_FETCH_BATCH, loadPackageData)
-      const filtered = results.filter((r): r is PackageData => r !== null)
-      setPackages(filtered)
+      const downloadMapPromise = fetchPackagesDownloadsBatch(names)
+      const metaResultsPromise = mapInBatches(names, META_FETCH_BATCH, async (name) => {
+        try {
+          return await fetchPackageMeta(name)
+        } catch {
+          return null
+        }
+      })
+      const [downloadMap, metas] = await Promise.all([downloadMapPromise, metaResultsPromise])
+      const results: PackageData[] = []
+      names.forEach((name, index) => {
+        const meta = metas[index]
+        if (!meta) return
+        const d = downloadMap.get(name)
+        if (!d) return
+        results.push({
+          name,
+          meta,
+          weekly: d.weekly,
+          monthly: d.monthly,
+          daily: d.daily,
+          monthlyRange: d.monthlyRange,
+        })
+      })
+      setPackages(results)
       setLastUpdated(new Date())
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load packages')
