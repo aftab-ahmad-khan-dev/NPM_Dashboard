@@ -38,14 +38,15 @@ npm run preview    # serve the production build locally
 
 ```
 api/
-└── package-downloads.ts     # POST { packages } → server-side npm downloads aggregation + pacing
+└── package-downloads.ts           # POST { packages } → server-side npm aggregation + pacing
+lib/
+└── npmAggregateDownloads.ts       # shared worker (bundled into the above + Vite dev middleware)
 src/
-├── main.tsx                   # bootstrap
-├── index.css                     # tailwind v4 entry
-├── data/packages.ts              # npm username, optional denylist + pinned package names
+├── main.tsx                       # bootstrap
+├── index.css                      # tailwind v4 entry
+├── data/packages.ts               # npm username, optional denylist + pinned package names
 ├── lib/
 │   ├── npm-api.ts                # registry + SPA → POST downloads API
-│   ├── npmAggregateDownloads.ts # shared aggregator (server + vite dev middleware)
 │   └── format.ts                 # number / date helpers
 ├── context/PackagesContext.tsx   # discovers package names from npm, then fetches metadata
 ├── components/

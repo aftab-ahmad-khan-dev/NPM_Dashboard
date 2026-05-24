@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, type Plugin } from 'vite'
-import { aggregatePackageDownloads } from './src/lib/npmAggregateDownloads'
+import { aggregatePackageDownloads } from './lib/npmAggregateDownloads'
 
 function collectBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {

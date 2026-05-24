@@ -1,12 +1,13 @@
 /**
  * Runs all npm downloads API calls in one paced sequence (ideal for serverless / one POST from the SPA).
+ * Lives under `/lib` (not `/src`) so Vercel can bundle it reliably with `api/` routes.
  */
 import type {
   DownloadsDay,
   DownloadsPoint,
   DownloadsRange,
   PackageDownloadsBundle,
-} from '../types'
+} from '../src/types'
 
 const NPM_DOWNLOADS_BASE = 'https://api.npmjs.org/downloads/'
 
@@ -254,6 +255,7 @@ async function ingestUnscopedBulk(pkgsChunk: readonly string[], out: Record<stri
 
   for (const name of pkgsChunk) {
     const bag = out[name]
+    if (!bag) continue
     const wpt = bpWk?.[name]
     const mpt = bpMo?.[name]
     const wrn = brWk?.[name]
