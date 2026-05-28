@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/package-downloads.ts": {
-      "maxDuration": 60
+      "maxDuration": 300
     },
     "api/npm-search.ts": {
       "maxDuration": 30

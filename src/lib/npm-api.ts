@@ -45,10 +45,36 @@ async function registryFetch(input: string | URL, attempt = 0): Promise<Response
   return res
 }
 
-/**
- * Loads download stats for all packages via a single POST to our API (bulk + paced scoped lookups on the server).
- */
-export async function fetchPackagesDownloadsBatch(names: string[]): Promise<
+/** Scoped pkgs need 4 npm calls each; keep each POST under Vercel’s 60s limit on Hobby. */
+const DOWNLOADS_API_CHUNK = 32
+
+function emptyDownloadsBundle(): PackageDownloadsBundle {
+  return { weekly: null, monthly: null, daily: null, monthlyRange: null }
+}
+
+function mergeDownloadsChunk(
+  names: string[],
+  data: Record<string, unknown>,
+): Map<string, PackageDownloadsBundle> {
+  const out = new Map<string, PackageDownloadsBundle>()
+  for (const name of names) {
+    const row = data[name]
+    if (typeof row !== 'object' || row === null) {
+      out.set(name, emptyDownloadsBundle())
+      continue
+    }
+    const bundle = row as PackageDownloadsBundle
+    out.set(name, {
+      weekly: bundle.weekly ?? null,
+      monthly: bundle.monthly ?? null,
+      daily: bundle.daily ?? null,
+      monthlyRange: bundle.monthlyRange ?? null,
+    })
+  }
+  return out
+}
+
+async function fetchPackagesDownloadsChunk(names: string[]): Promise<
   Map<string, PackageDownloadsBundle>
 > {
   const res = await fetch(PACKAGE_DOWNLOADS_API, {
@@ -87,23 +113,24 @@ export async function fetchPackagesDownloadsBatch(names: string[]): Promise<
     throw new Error('downloads aggregate: unexpected response shape')
   }
 
-  const out = new Map<string, PackageDownloadsBundle>()
-  for (const name of names) {
-    const row = (data as Record<string, unknown>)[name]
-    if (typeof row !== 'object' || row === null) {
-      out.set(name, { weekly: null, monthly: null, daily: null, monthlyRange: null })
-      continue
-    }
-    const bundle = row as PackageDownloadsBundle
-    out.set(name, {
-      weekly: bundle.weekly ?? null,
-      monthly: bundle.monthly ?? null,
-      daily: bundle.daily ?? null,
-      monthlyRange: bundle.monthlyRange ?? null,
-    })
-  }
+  return mergeDownloadsChunk(names, data as Record<string, unknown>)
+}
 
-  return out
+/**
+ * Loads download stats via POST /api/package-downloads (chunked so large maintainer lists don’t 504).
+ */
+export async function fetchPackagesDownloadsBatch(names: string[]): Promise<
+  Map<string, PackageDownloadsBundle>
+> {
+  if (!names.length) return new Map()
+
+  const merged = new Map<string, PackageDownloadsBundle>()
+  for (let i = 0; i < names.length; i += DOWNLOADS_API_CHUNK) {
+    const chunk = names.slice(i, i + DOWNLOADS_API_CHUNK)
+    const part = await fetchPackagesDownloadsChunk(chunk)
+    for (const [k, v] of part) merged.set(k, v)
+  }
+  return merged
 }
 
 interface NpmSearchResponse {

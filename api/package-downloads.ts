@@ -158,8 +158,18 @@ function asRange(j: unknown): DownloadsRange | null {
 
 function asBulkPoints(j: unknown): Record<string, BulkPointRow> | null {
   if (typeof j !== 'object' || j === null || isErrorBody(j)) return null
+  const top = j as Record<string, unknown>
+  // One unscoped package: { downloads, package, start, end } — not { name: {…} }
+  if (
+    typeof top.package === 'string' &&
+    typeof top.downloads === 'number' &&
+    typeof top.start === 'string' &&
+    typeof top.end === 'string'
+  ) {
+    return { [top.package]: top as BulkPointRow }
+  }
   const out: Record<string, BulkPointRow> = {}
-  for (const row of Object.values(j as Record<string, unknown>)) {
+  for (const row of Object.values(top)) {
     if (typeof row !== 'object' || row === null || isErrorBody(row)) continue
     const r = row as Partial<BulkPointRow>
     if (
@@ -176,8 +186,23 @@ function asBulkPoints(j: unknown): Record<string, BulkPointRow> | null {
 
 function asBulkRanges(j: unknown): Record<string, BulkRangeRow> | null {
   if (typeof j !== 'object' || j === null || isErrorBody(j)) return null
+  const top = j as Record<string, unknown>
+  if (
+    typeof top.package === 'string' &&
+    typeof top.start === 'string' &&
+    typeof top.end === 'string' &&
+    Array.isArray(top.downloads)
+  ) {
+    const days = top.downloads as unknown[]
+    for (const day of days) {
+      if (typeof day !== 'object' || day === null) return null
+      const d = day as Partial<DownloadsDay>
+      if (typeof d.day !== 'string' || typeof d.downloads !== 'number') return null
+    }
+    return { [top.package]: top as BulkRangeRow }
+  }
   const out: Record<string, BulkRangeRow> = {}
-  for (const row of Object.values(j as Record<string, unknown>)) {
+  for (const row of Object.values(top)) {
     if (typeof row !== 'object' || row === null || isErrorBody(row)) continue
     const r = row as Partial<BulkRangeRow>
     if (
@@ -336,7 +361,8 @@ async function aggregatePackageDownloads(
   return out
 }
 
-export const config = { maxDuration: 60 }
+/** ~1s/pkg sequential; full maintainer list can be 80–150+ scoped names. */
+export const config = { maxDuration: 300 }
 
 function coerceRequestBody(raw: unknown):
   | { ok: false; status: number; body: { error: string } }

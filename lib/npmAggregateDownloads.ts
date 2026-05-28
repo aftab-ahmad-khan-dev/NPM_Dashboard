@@ -166,7 +166,16 @@ function asRange(j: unknown): DownloadsRange | null {
 
 function asBulkPoints(j: unknown): Record<string, BulkPointRow> | null {
   if (typeof j !== 'object' || j === null || isErrorBody(j)) return null
-  const rows = Object.values(j as Record<string, unknown>)
+  const top = j as Record<string, unknown>
+  if (
+    typeof top.package === 'string' &&
+    typeof top.downloads === 'number' &&
+    typeof top.start === 'string' &&
+    typeof top.end === 'string'
+  ) {
+    return { [top.package]: top as BulkPointRow }
+  }
+  const rows = Object.values(top)
   const out: Record<string, BulkPointRow> = {}
   for (const row of rows) {
     if (typeof row !== 'object' || row === null || isErrorBody(row)) continue
@@ -185,7 +194,29 @@ function asBulkPoints(j: unknown): Record<string, BulkPointRow> | null {
 
 function asBulkRanges(j: unknown): Record<string, BulkRangeRow> | null {
   if (typeof j !== 'object' || j === null || isErrorBody(j)) return null
-  const rows = Object.values(j as Record<string, unknown>)
+  const top = j as Record<string, unknown>
+  if (
+    typeof top.package === 'string' &&
+    typeof top.start === 'string' &&
+    typeof top.end === 'string' &&
+    Array.isArray(top.downloads)
+  ) {
+    const days = top.downloads as unknown[]
+    let ok = true
+    for (const day of days) {
+      if (typeof day !== 'object' || day === null) {
+        ok = false
+        break
+      }
+      const d = day as Partial<DownloadsDay>
+      if (typeof d.day !== 'string' || typeof d.downloads !== 'number') {
+        ok = false
+        break
+      }
+    }
+    if (ok) return { [top.package]: top as BulkRangeRow }
+  }
+  const rows = Object.values(top)
   const out: Record<string, BulkRangeRow> = {}
   for (const row of rows) {
     if (typeof row !== 'object' || row === null || isErrorBody(row)) continue
