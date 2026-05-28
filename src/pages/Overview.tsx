@@ -39,6 +39,7 @@ import { useMeta } from "../hooks/useMeta";
 import {
   countPackagesByTrack,
   inferPackageTrack,
+  stackPackageCountLabel,
   TRACK_META,
   TRACK_ORDER,
   type DevTrackId,
@@ -1180,9 +1181,7 @@ function StackDownloadsRow({
             key={track}
             label={`${TRACK_META[track].shortLabel} · weekly DLs`}
             value={formatNumber(weekly)}
-            sub={`${formatNumber(monthly)} last 30d · ${pkgs.length} package${
-              pkgs.length !== 1 ? "s" : ""
-            }`}
+            sub={`${formatNumber(monthly)} last 30d · ${stackPackageCountLabel(track, pkgs.length)}`}
             accent={trackAccent[track]}
             delta={{
               value: `~${share.toFixed(0)}%`,
@@ -1202,6 +1201,10 @@ function StackDownloadsRow({
                   detail={formatNumber(weeklyDownloadsFromPackage(top))}
                   href={`/packages/${encodeURIComponent(top.name)}`}
                 />
+              ) : pkgs.length === 0 && track === 'flutter' ? (
+                <FooterMuted text='Flutter libs are on pub.dev — this dashboard tracks npm only.' />
+              ) : pkgs.length === 0 && track === 'react-native' ? (
+                <FooterMuted text='Only a few RN monorepo packages are published to npm under this user.' />
               ) : (
                 <FooterMuted text='No downloads this week for this stack.' />
               )
