@@ -1,6 +1,6 @@
 /**
- * Runs npm downloads API calls in one paced sequence (Vite middleware + serverless worker).
- * Type shapes mirror `src/types.ts`; keep in sync manually (workers must not import from `src/`).
+ * Downloads aggregator for Vite dev middleware only.
+ * Production Vercel handler inlines the same logic in `api/package-downloads.ts`.
  */
 interface DownloadsDay {
   downloads: number
