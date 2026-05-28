@@ -129,6 +129,7 @@ export async function fetchPackagesDownloadsBatch(names: string[]): Promise<
     const chunk = names.slice(i, i + DOWNLOADS_API_CHUNK)
     const part = await fetchPackagesDownloadsChunk(chunk)
     for (const [k, v] of part) merged.set(k, v)
+    if (i + DOWNLOADS_API_CHUNK < names.length) await sleep(350)
   }
   return merged
 }

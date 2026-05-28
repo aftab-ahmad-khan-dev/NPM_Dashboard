@@ -20,6 +20,10 @@ import { usePackages } from '../context/PackagesContext'
 import { Skeleton } from '../components/Skeleton'
 import { useMeta } from '../hooks/useMeta'
 import {
+  monthlyDownloadsFromPackage,
+  weeklyDownloadsFromPackage,
+} from '../lib/downloads-stats'
+import {
   cleanRepoUrl,
   formatBytes,
   formatDate,
@@ -38,7 +42,7 @@ export function PackageDetail() {
       ? `${pkg.name}@${pkg.meta['dist-tags']?.latest ?? ''} — ${pkg.meta.description ?? 'npm package'} · Aftab Ahmad Khan`
       : `${name} · npm Packages Dashboard`,
     description: pkg
-      ? `${pkg.meta.description ?? pkg.name + ' npm package'} — open-source TypeScript module by Aftab Ahmad Khan (mr-aftab-ahmad-khan). Latest version v${pkg.meta['dist-tags']?.latest ?? '0.0.0'}, MIT licensed, ${formatNumber(pkg.weekly?.downloads)} weekly downloads.`
+      ? `${pkg.meta.description ?? pkg.name + ' npm package'} — open-source TypeScript module by Aftab Ahmad Khan (mr-aftab-ahmad-khan). Latest version v${pkg.meta['dist-tags']?.latest ?? '0.0.0'}, MIT licensed, ${formatNumber(weeklyDownloadsFromPackage(pkg))} weekly downloads.`
       : `Live npm package details and download stats for ${name}.`,
     keywords: pkg
       ? `${pkg.name}, npm package, ${(pkg.meta.keywords ?? []).join(', ')}, aftab ahmad khan, typescript, open source, ${pkg.meta.license ?? 'MIT'}`
@@ -164,12 +168,12 @@ export function PackageDetail() {
         <MiniStat
           icon={Download}
           label="Weekly"
-          value={formatNumber(pkg.weekly?.downloads)}
+          value={formatNumber(weeklyDownloadsFromPackage(pkg))}
         />
         <MiniStat
           icon={Download}
           label="Monthly"
-          value={formatNumber(pkg.monthly?.downloads)}
+          value={formatNumber(monthlyDownloadsFromPackage(pkg))}
         />
         <MiniStat icon={Tag} label="Versions" value={versions.length.toString()} />
         <MiniStat

@@ -66,9 +66,7 @@ function markNpmDownloadsEnd(): void {
   lastNpmDownloadsEndMs = Date.now()
 }
 
-async function npmDownloadsFetch(pathSuffix: string, attempt = 0): Promise<Response> {
-  if (attempt === 0) await enforceMinGap()
-
+async function npmDownloadsFetchCore(pathSuffix: string, attempt = 0): Promise<Response> {
   let res: Response
   try {
     res = await fetch(NPM_DOWNLOADS_BASE + pathSuffix, {
@@ -78,11 +76,9 @@ async function npmDownloadsFetch(pathSuffix: string, attempt = 0): Promise<Respo
   } catch {
     await sleep(400 + attempt * 350)
     if (attempt < NPM_FETCH_MAX_ATTEMPTS - 1)
-      return npmDownloadsFetch(pathSuffix, attempt + 1)
+      return npmDownloadsFetchCore(pathSuffix, attempt + 1)
     return new Response('', { status: 502 })
   }
-
-  markNpmDownloadsEnd()
 
   if (
     (res.status === 429 || res.status === 503 || res.status === 502) &&
@@ -90,9 +86,16 @@ async function npmDownloadsFetch(pathSuffix: string, attempt = 0): Promise<Respo
   ) {
     const backoff = retryAfterMs(res) ?? Math.min(30_000, 700 * 2 ** attempt + attempt * 200)
     await sleep(backoff)
-    return npmDownloadsFetch(pathSuffix, attempt + 1)
+    return npmDownloadsFetchCore(pathSuffix, attempt + 1)
   }
 
+  return res
+}
+
+async function npmDownloadsFetch(pathSuffix: string, attempt = 0): Promise<Response> {
+  if (attempt === 0) await enforceMinGap()
+  const res = await npmDownloadsFetchCore(pathSuffix, attempt)
+  markNpmDownloadsEnd()
   return res
 }
 
@@ -320,21 +323,26 @@ async function ingestUnscopedBulk(
   }
 }
 
+function bundleFetchFailed(b: PackageDownloadsBundle): boolean {
+  return !b.weekly && !b.monthly && !b.daily && !b.monthlyRange
+}
+
 async function fetchScopedOne(name: string): Promise<PackageDownloadsBundle> {
   const enc = encodeURIComponent(name)
+  await enforceMinGap()
+  const [wPtRes, mPtRes, wRnRes, mRnRes] = await Promise.all([
+    npmDownloadsFetchCore(`point/last-week/${enc}`),
+    npmDownloadsFetchCore(`point/last-month/${enc}`),
+    npmDownloadsFetchCore(`range/last-week/${enc}`),
+    npmDownloadsFetchCore(`range/last-month/${enc}`),
+  ])
+  markNpmDownloadsEnd()
+
   const bundle = emptyBundle()
-  bundle.weekly = asPoint(
-    await jsonOrNull(await npmDownloadsFetch(`point/last-week/${enc}`)),
-  )
-  bundle.monthly = asPoint(
-    await jsonOrNull(await npmDownloadsFetch(`point/last-month/${enc}`)),
-  )
-  bundle.daily = asRange(
-    await jsonOrNull(await npmDownloadsFetch(`range/last-week/${enc}`)),
-  )
-  bundle.monthlyRange = asRange(
-    await jsonOrNull(await npmDownloadsFetch(`range/last-month/${enc}`)),
-  )
+  bundle.weekly = asPoint(await jsonOrNull(wPtRes))
+  bundle.monthly = asPoint(await jsonOrNull(mPtRes))
+  bundle.daily = asRange(await jsonOrNull(wRnRes))
+  bundle.monthlyRange = asRange(await jsonOrNull(mRnRes))
   return bundle
 }
 
@@ -358,6 +366,23 @@ async function aggregatePackageDownloads(
       out[name] = emptyBundle()
     }
   }
+
+  const failedUnscoped = unscoped.filter((n) => bundleFetchFailed(out[n]))
+  if (failedUnscoped.length) {
+    await sleep(800)
+    await ingestUnscopedBulk(failedUnscoped, out)
+  }
+
+  const failedScoped = scoped.filter((n) => bundleFetchFailed(out[n]))
+  for (const name of failedScoped) {
+    await sleep(400)
+    try {
+      out[name] = await fetchScopedOne(name)
+    } catch {
+      /* keep prior empty bundle */
+    }
+  }
+
   return out
 }
 

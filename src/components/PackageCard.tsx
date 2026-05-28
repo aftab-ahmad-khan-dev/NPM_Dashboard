@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Calendar, Download } from 'lucide-react'
+import { weeklyDownloadsFromPackage } from '../lib/downloads-stats'
 import { formatNumber, timeAgo } from '../lib/format'
 import { inferPackageTrack, TRACK_META, type DevTrackId } from '../lib/package-track'
 import type { PackageData } from '../types'
@@ -65,7 +66,7 @@ export function PackageCard({ pkg }: Props) {
       <div className="flex items-center gap-4 text-xs text-zinc-500 pt-3 border-t border-zinc-800/60">
         <span className="flex items-center gap-1">
           <Download className="w-3.5 h-3.5" />
-          <span className="tabular-nums">{formatNumber(pkg.weekly?.downloads)}</span>
+          <span className="tabular-nums">{formatNumber(weeklyDownloadsFromPackage(pkg))}</span>
           <span className="text-zinc-600">/wk</span>
         </span>
         <span className="flex items-center gap-1">

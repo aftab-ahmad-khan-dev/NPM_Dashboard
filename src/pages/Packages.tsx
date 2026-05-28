@@ -4,6 +4,7 @@ import { usePackages } from '../context/PackagesContext'
 import { PackageCard } from '../components/PackageCard'
 import { Skeleton } from '../components/Skeleton'
 import { useMeta } from '../hooks/useMeta'
+import { weeklyDownloadsFromPackage } from '../lib/downloads-stats'
 import {
   inferPackageTrack,
   TRACK_META,
@@ -55,7 +56,7 @@ export function Packages() {
     list.sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name)
       if (sort === 'downloads')
-        return (b.weekly?.downloads ?? 0) - (a.weekly?.downloads ?? 0)
+        return weeklyDownloadsFromPackage(b) - weeklyDownloadsFromPackage(a)
       const ta = new Date(a.meta.time?.modified ?? 0).getTime()
       const tb = new Date(b.meta.time?.modified ?? 0).getTime()
       return tb - ta

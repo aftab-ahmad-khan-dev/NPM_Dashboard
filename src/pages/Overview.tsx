@@ -21,6 +21,10 @@ import { Skeleton } from "../components/Skeleton";
 import { BrandIcon } from "../components/BrandIcon";
 import { formatNumber, timeAgo } from "../lib/format";
 import {
+  monthlyDownloadsFromPackage,
+  weeklyDownloadsFromPackage,
+} from "../lib/downloads-stats";
+import {
   fetchOrgPublicRepos,
   publishedNameLookup,
   unpublishedPublicRepos,
@@ -106,11 +110,11 @@ export function Overview() {
   }
 
   const weeklyTotal = packages.reduce(
-    (acc, p) => acc + (p.weekly?.downloads ?? 0),
+    (acc, p) => acc + weeklyDownloadsFromPackage(p),
     0,
   );
   const monthlyTotal = packages.reduce(
-    (acc, p) => acc + (p.monthly?.downloads ?? 0),
+    (acc, p) => acc + monthlyDownloadsFromPackage(p),
     0,
   );
   const totalVersions = packages.reduce(
@@ -124,7 +128,7 @@ export function Overview() {
       new Date(a.meta.time?.modified ?? 0).getTime(),
   );
   const topByDownloads = [...packages].sort(
-    (a, b) => (b.weekly?.downloads ?? 0) - (a.weekly?.downloads ?? 0),
+    (a, b) => weeklyDownloadsFromPackage(b) - weeklyDownloadsFromPackage(a),
   );
   const featured = topByDownloads[0];
 
@@ -366,10 +370,7 @@ function topPackageByMonthlyDaySeries(packages: PackageData[]): {
 } | null {
   let best: { name: string; downloads: number } | null = null;
   for (const p of packages) {
-    const sum = (p.monthlyRange?.downloads ?? []).reduce(
-      (s, x) => s + x.downloads,
-      0,
-    );
+    const sum = monthlyDownloadsFromPackage(p);
     if (sum <= 0) continue;
     if (!best || sum > best.downloads) best = { name: p.name, downloads: sum };
   }
@@ -438,7 +439,7 @@ function StatGrid({
 
   /* ----- Weekly downloads (totals & leader) ----- */
   const topWeekly = topByDownloads[0];
-  const topWeeklyValue = topWeekly?.weekly?.downloads ?? 0;
+  const topWeeklyValue = topWeekly ? weeklyDownloadsFromPackage(topWeekly) : 0;
   const weeklyShare = weekly > 0 ? (topWeeklyValue / weekly) * 100 : 0;
   const baselineWeekly = monthly / 4;
   const weeklyDeltaPct =
@@ -1142,11 +1143,11 @@ function StackDownloadsRow({
   const byTrack = useMemo(() => {
     return TRACK_ORDER.map((track) => {
       const pkgs = packages.filter((p) => inferPackageTrack(p) === track);
-      const weekly = pkgs.reduce((s, p) => s + (p.weekly?.downloads ?? 0), 0);
-      const monthly = pkgs.reduce((s, p) => s + (p.monthly?.downloads ?? 0), 0);
+      const weekly = pkgs.reduce((s, p) => s + weeklyDownloadsFromPackage(p), 0);
+      const monthly = pkgs.reduce((s, p) => s + monthlyDownloadsFromPackage(p), 0);
       const dailyBuckets = aggregateDailyDownloads(pkgs);
       const top = [...pkgs].sort(
-        (a, b) => (b.weekly?.downloads ?? 0) - (a.weekly?.downloads ?? 0),
+        (a, b) => weeklyDownloadsFromPackage(b) - weeklyDownloadsFromPackage(a),
       )[0];
       const share = weeklyTotal > 0 ? (weekly / weeklyTotal) * 100 : 0;
       return { track, pkgs, weekly, monthly, dailyBuckets, top, share };
@@ -1194,11 +1195,11 @@ function StackDownloadsRow({
               ) : null
             }
             footer={
-              top && (top.weekly?.downloads ?? 0) > 0 ? (
+              top && weeklyDownloadsFromPackage(top) > 0 ? (
                 <LeaderRow
                   label='Top'
                   name={top.name}
-                  detail={formatNumber(top.weekly?.downloads ?? 0)}
+                  detail={formatNumber(weeklyDownloadsFromPackage(top))}
                   href={`/packages/${encodeURIComponent(top.name)}`}
                 />
               ) : (
@@ -1281,7 +1282,7 @@ function FeaturedCard({ pkg }: { pkg: PackageData }) {
             <span className='flex items-center gap-1'>
               <Download className='w-3.5 h-3.5' />
               <span className='tabular-nums'>
-                {formatNumber(pkg.weekly?.downloads)}
+                {formatNumber(weeklyDownloadsFromPackage(pkg))}
               </span>{" "}
               /wk
             </span>
@@ -1304,7 +1305,7 @@ function FeaturedCard({ pkg }: { pkg: PackageData }) {
 /* ---------- Top downloads chart ---------- */
 
 function TopDownloadsChart({ packages }: { packages: PackageData[] }) {
-  const max = packages[0]?.weekly?.downloads ?? 1;
+  const max = packages[0] ? weeklyDownloadsFromPackage(packages[0]) : 1;
   return (
     <div className='lg:col-span-3 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 backdrop-blur-sm p-5 sm:p-6 animate-fade-up anim-stagger-6'>
       <div className='flex items-center justify-between mb-5'>
@@ -1323,7 +1324,7 @@ function TopDownloadsChart({ packages }: { packages: PackageData[] }) {
 
       <ul className='space-y-3'>
         {packages.map((p, idx) => {
-          const value = p.weekly?.downloads ?? 0;
+          const value = weeklyDownloadsFromPackage(p);
           const pct = (value / max) * 100;
           const gradient = ACCENT_GRADIENTS[idx % ACCENT_GRADIENTS.length];
           return (
