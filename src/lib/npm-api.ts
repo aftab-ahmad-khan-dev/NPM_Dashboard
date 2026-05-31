@@ -194,11 +194,21 @@ export async function discoverPublishedPackageNames(username: string): Promise<s
 export const fetchPackageNamesByMaintainer = discoverPublishedPackageNames
 
 export async function fetchPackageMeta(name: string): Promise<NpmRegistryMeta | null> {
-  const res = await registryFetch(
-    `${NPM_REGISTRY_API}?package=${encodeURIComponent(name)}`,
-  )
-  if (!res.ok) return null
-  const data = (await res.json()) as NpmRegistryMeta & { _missing?: boolean }
-  if (data._missing) return null
-  return data
+  const url = `${NPM_REGISTRY_API}?package=${encodeURIComponent(name)}`
+
+  const read = async (): Promise<NpmRegistryMeta | null> => {
+    const res = await registryFetch(url)
+    if (res.status === 404) return null
+    if (!res.ok) return null
+    const data = (await res.json()) as NpmRegistryMeta & { _missing?: boolean }
+    if (data._missing) return null
+    return data
+  }
+
+  const first = await read()
+  if (first) return first
+
+  // Registry metadata can lag npm search right after a publish.
+  await sleep(4000)
+  return read()
 }

@@ -41,8 +41,9 @@ function devDashboardApiPlugin(): Plugin {
               `https://registry.npmjs.org/${encodeURIComponent(decoded)}`,
               { headers: { Accept: 'application/json' } },
             )
-            if (upstream.status === 404) {
-              await new Promise((resolve) => setTimeout(resolve, 2500))
+            const notFoundBackoff = [2500, 4000, 8000]
+            for (let i = 0; upstream.status === 404 && i < notFoundBackoff.length; i++) {
+              await new Promise((resolve) => setTimeout(resolve, notFoundBackoff[i]))
               upstream = await fetch(
                 `https://registry.npmjs.org/${encodeURIComponent(decoded)}`,
                 { headers: { Accept: 'application/json' } },

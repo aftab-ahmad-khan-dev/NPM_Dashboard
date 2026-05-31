@@ -3,6 +3,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 const UPSTREAM = 'https://registry.npmjs.org/'
 
 const MAX_FETCH_ATTEMPTS = 8
+/** npm search often lists packages minutes before registry GET metadata exists. */
+const MAX_NOT_FOUND_ATTEMPTS = 4
+const NOT_FOUND_BACKOFF_MS = [2500, 4000, 8000]
 
 export const config = { maxDuration: 30 }
 
@@ -51,10 +54,9 @@ async function upstreamMetaOnce(pkg: string, attempt = 0): Promise<Response> {
 
   if (
     upstream.status === 404 &&
-    attempt === 0
+    attempt < MAX_NOT_FOUND_ATTEMPTS - 1
   ) {
-    // npm search can list packages before registry metadata replicates (fresh publish).
-    await sleep(2500)
+    await sleep(NOT_FOUND_BACKOFF_MS[attempt] ?? 8000)
     return upstreamMetaOnce(pkg, attempt + 1)
   }
 
