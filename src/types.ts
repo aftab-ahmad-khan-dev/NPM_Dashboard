@@ -54,7 +54,18 @@ export type PackageDownloadsBundle = {
   monthlyRange: DownloadsRange | null
 }
 
+export type PackageRegistry = 'npm' | 'pub'
+
+export interface PubPackageExtras {
+  likeCount: number
+  grantedPoints: number | null
+  maxPoints: number | null
+  downloadCount30Days: number | null
+}
+
 export interface PackageData {
+  /** npm (default) or pub.dev */
+  registry?: PackageRegistry
   name: string
   meta: NpmRegistryMeta
   weekly: DownloadsPoint | null
@@ -63,4 +74,6 @@ export interface PackageData {
   daily: DownloadsRange | null
   /** Last 30 days — per-day series for monthly downloads card. */
   monthlyRange: DownloadsRange | null
+  /** Present when `registry === 'pub'`. */
+  pub?: PubPackageExtras
 }

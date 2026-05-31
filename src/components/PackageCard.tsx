@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Calendar, Download } from 'lucide-react'
-import { weeklyDownloadsFromPackage } from '../lib/downloads-stats'
+import { monthlyDownloadsFromPackage, weeklyDownloadsFromPackage } from '../lib/downloads-stats'
 import { formatNumber, timeAgo } from '../lib/format'
 import { inferPackageTrack, TRACK_META, type DevTrackId } from '../lib/package-track'
 import type { PackageData } from '../types'
@@ -16,16 +16,16 @@ interface Props {
 }
 
 export function PackageCard({ pkg }: Props) {
+  const isPub = pkg.registry === 'pub'
   const latest = pkg.meta['dist-tags']?.latest ?? '0.0.0'
   const modified = pkg.meta.time?.modified
   const keywords = pkg.meta.keywords ?? []
   const track = inferPackageTrack(pkg)
+  const dl = isPub ? monthlyDownloadsFromPackage(pkg) : weeklyDownloadsFromPackage(pkg)
+  const dlLabel = isPub ? '/30d' : '/wk'
 
-  return (
-    <Link
-      to={`/packages/${encodeURIComponent(pkg.name)}`}
-      className="group relative block bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-5 hover:border-violet-500/40 hover:bg-zinc-900/80 transition-all"
-    >
+  const cardInner = (
+    <>
       <ArrowUpRight className="absolute top-4 right-4 w-4 h-4 text-zinc-600 group-hover:text-violet-400 transition-colors" />
       <div className="flex items-start justify-between gap-3 mb-2 pr-6">
         <h3 className="font-medium text-zinc-100 truncate">{pkg.name}</h3>
@@ -40,6 +40,11 @@ export function PackageCard({ pkg }: Props) {
         >
           {TRACK_META[track].shortLabel}
         </span>
+        {isPub && (
+          <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-200 ring-1 ring-inset ring-cyan-500/30">
+            pub.dev
+          </span>
+        )}
       </div>
       <p className="text-sm text-zinc-400 line-clamp-2 mb-4 min-h-[2.5rem]">
         {pkg.meta.description ?? 'No description available'}
@@ -66,14 +71,36 @@ export function PackageCard({ pkg }: Props) {
       <div className="flex items-center gap-4 text-xs text-zinc-500 pt-3 border-t border-zinc-800/60">
         <span className="flex items-center gap-1">
           <Download className="w-3.5 h-3.5" />
-          <span className="tabular-nums">{formatNumber(weeklyDownloadsFromPackage(pkg))}</span>
-          <span className="text-zinc-600">/wk</span>
+          <span className="tabular-nums">{formatNumber(dl)}</span>
+          <span className="text-zinc-600">{dlLabel}</span>
         </span>
         <span className="flex items-center gap-1">
           <Calendar className="w-3.5 h-3.5" />
           {timeAgo(modified)}
         </span>
       </div>
+    </>
+  )
+
+  const className =
+    'group relative block bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-5 hover:border-violet-500/40 hover:bg-zinc-900/80 transition-all'
+
+  if (isPub) {
+    return (
+      <a
+        href={`https://pub.dev/packages/${encodeURIComponent(pkg.name)}`}
+        target="_blank"
+        rel="noreferrer"
+        className={className}
+      >
+        {cardInner}
+      </a>
+    )
+  }
+
+  return (
+    <Link to={`/packages/${encodeURIComponent(pkg.name)}`} className={className}>
+      {cardInner}
     </Link>
   )
 }

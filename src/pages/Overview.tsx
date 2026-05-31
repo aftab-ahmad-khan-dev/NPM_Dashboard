@@ -198,8 +198,9 @@ function TrackRibbon({ packages }: { packages: PackageData[] }) {
     <section className='rounded-2xl border border-zinc-800/70 bg-zinc-900/35 backdrop-blur-sm px-4 py-4 sm:px-5 animate-fade-up anim-stagger-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
       <p className='text-[11px] sm:text-xs text-zinc-500 max-w-xl leading-relaxed'>
         Modules are grouped into{" "}
-        <span className='text-zinc-400 font-medium'>three stacks</span> using npm
-        keywords & descriptions (plain Node/TS libraries default to MERN tooling).
+        <span className='text-zinc-400 font-medium'>three stacks</span> — npm packages
+        from the registry plus Flutter/Dart packages loaded from{" "}
+        <span className='text-cyan-300/90'>pub.dev</span> (30-day download counts).
       </p>
       <div className='flex flex-wrap gap-2 shrink-0'>
         {TRACK_ORDER.map((id) => (
@@ -1201,10 +1202,6 @@ function StackDownloadsRow({
                   detail={formatNumber(weeklyDownloadsFromPackage(top))}
                   href={`/packages/${encodeURIComponent(top.name)}`}
                 />
-              ) : pkgs.length === 0 && track === 'flutter' ? (
-                <FooterMuted text='Flutter libs are on pub.dev — this dashboard tracks npm only.' />
-              ) : pkgs.length === 0 && track === 'react-native' ? (
-                <FooterMuted text='Only a few RN monorepo packages are published to npm under this user.' />
               ) : (
                 <FooterMuted text='No downloads this week for this stack.' />
               )

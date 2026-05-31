@@ -50,8 +50,11 @@ function trackFromMonorepoSlug(packageName: string): DevTrackId | null {
  */
 export function inferPackageTrack(pkg: {
   name: string
+  registry?: 'npm' | 'pub'
   meta: NpmRegistryMeta
 }): DevTrackId {
+  if (pkg.registry === 'pub') return 'flutter'
+
   const fromRepo = trackFromMonorepoSlug(pkg.name)
   if (fromRepo) return fromRepo
 
@@ -96,12 +99,11 @@ export function countPackagesByTrack<T extends { name: string; meta: NpmRegistry
 
 /** Subtitle for stack cards when npm discovery count is low. */
 export function stackPackageCountLabel(track: DevTrackId, npmCount: number): string {
-  const catalog = TRACK_CATALOG_SIZE[track]
-  if (track === 'flutter' && npmCount === 0 && catalog > 0) {
-    return `0 on npm · ${catalog} on pub.dev`
+  if (track === 'flutter' && npmCount > 0) {
+    return `${npmCount} on pub.dev`
   }
-  if (track === 'react-native' && catalog > 0 && npmCount < catalog) {
-    return `${npmCount} on npm · ${catalog} in RN monorepo`
+  if (track === 'react-native' && TRACK_CATALOG_SIZE['react-native'] > 0 && npmCount < TRACK_CATALOG_SIZE['react-native']) {
+    return `${npmCount} on npm · ${TRACK_CATALOG_SIZE['react-native']} in RN monorepo`
   }
   return `${npmCount} package${npmCount !== 1 ? 's' : ''}`
 }

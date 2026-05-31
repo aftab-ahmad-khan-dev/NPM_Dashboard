@@ -1,4 +1,5 @@
 import type { NpmRegistryMeta, PackageDownloadsBundle } from '../types'
+import { fetchWithTimeout } from './fetch-timeout'
 
 export type { PackageDownloadsBundle } from '../types'
 
@@ -28,10 +29,14 @@ function retryAfterMs(res: Response): number | null {
 
 /** Proxied npm search + registry metadata (downloads use `PACKAGE_DOWNLOADS_API`). */
 async function registryFetch(input: string | URL, attempt = 0): Promise<Response> {
-  const res = await fetch(input, {
-    cache: 'no-store',
-    headers: { Accept: 'application/json' },
-  })
+  const res = await fetchWithTimeout(
+    input,
+    {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    },
+    45_000,
+  )
   if (
     (res.status === 429 || res.status === 503) &&
     attempt < NPM_FETCH_MAX_ATTEMPTS - 1
@@ -77,12 +82,16 @@ function mergeDownloadsChunk(
 async function fetchPackagesDownloadsChunk(names: string[]): Promise<
   Map<string, PackageDownloadsBundle>
 > {
-  const res = await fetch(PACKAGE_DOWNLOADS_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ packages: names }),
-    cache: 'no-store',
-  })
+  const res = await fetchWithTimeout(
+    PACKAGE_DOWNLOADS_API,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ packages: names }),
+      cache: 'no-store',
+    },
+    120_000,
+  )
 
   const rawBody = await res.text()
 
@@ -127,8 +136,12 @@ export async function fetchPackagesDownloadsBatch(names: string[]): Promise<
   const merged = new Map<string, PackageDownloadsBundle>()
   for (let i = 0; i < names.length; i += DOWNLOADS_API_CHUNK) {
     const chunk = names.slice(i, i + DOWNLOADS_API_CHUNK)
-    const part = await fetchPackagesDownloadsChunk(chunk)
-    for (const [k, v] of part) merged.set(k, v)
+    try {
+      const part = await fetchPackagesDownloadsChunk(chunk)
+      for (const [k, v] of part) merged.set(k, v)
+    } catch {
+      for (const n of chunk) merged.set(n, emptyDownloadsBundle())
+    }
     if (i + DOWNLOADS_API_CHUNK < names.length) await sleep(350)
   }
   return merged

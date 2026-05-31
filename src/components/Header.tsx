@@ -42,7 +42,12 @@ export function Header({ onMenuClick }: Props) {
         >
           Public npm data · registry &amp; downloads API
         </span>
-        {lastUpdated && (
+        {loading && (
+          <span className="text-xs text-violet-400/90 hidden sm:inline whitespace-nowrap">
+            Loading…
+          </span>
+        )}
+        {lastUpdated && !loading && (
           <span className="text-xs text-zinc-500 hidden sm:inline whitespace-nowrap">
             Updated {timeAgo(lastUpdated)}
           </span>
@@ -50,9 +55,9 @@ export function Header({ onMenuClick }: Props) {
         <button
           onClick={refresh}
           disabled={loading}
-          title='Loads package list, stats, and org repo info from npm + GitHub. Nothing is fetched until you use this.'
+          title="Reload npm, pub.dev, and GitHub stats"
           className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-zinc-100 disabled:opacity-40 transition-colors"
-          aria-label="Load or refresh npm and GitHub data"
+          aria-label="Refresh dashboard data"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>

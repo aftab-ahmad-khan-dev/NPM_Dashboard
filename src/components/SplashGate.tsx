@@ -2,9 +2,10 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePackages } from '../context/PackagesContext'
 
 const MIN_SPLASH_MS = 850
+const MAX_SPLASH_MS = 2800
 const FADE_MS = 480
 
-/** Full-screen splash on first load; does not reappear when refreshing package data in-app. */
+/** Full-screen splash on first visit only — never blocks longer than MAX_SPLASH_MS. */
 export function SplashGate({ children }: { children: ReactNode }) {
   const { loading } = usePackages()
   const startedAt = useRef(Date.now())
@@ -12,17 +13,19 @@ export function SplashGate({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<'on' | 'fade' | 'off'>('on')
 
   useEffect(() => {
-    if (loading) return
-    if (dismissScheduledRef.current) return
-    dismissScheduledRef.current = true
-    const elapsed = Date.now() - startedAt.current
-    const wait = Math.max(0, MIN_SPLASH_MS - elapsed)
-    const t = window.setTimeout(() => setPhase('fade'), wait)
-    return () => {
-      window.clearTimeout(t)
-      dismissScheduledRef.current = false
+    const scheduleDismiss = () => {
+      if (dismissScheduledRef.current || phase !== 'on') return
+      dismissScheduledRef.current = true
+      const elapsed = Date.now() - startedAt.current
+      const wait = Math.max(0, MIN_SPLASH_MS - elapsed)
+      window.setTimeout(() => setPhase('fade'), wait)
     }
-  }, [loading])
+
+    if (!loading) scheduleDismiss()
+
+    const maxTimer = window.setTimeout(scheduleDismiss, MAX_SPLASH_MS)
+    return () => window.clearTimeout(maxTimer)
+  }, [loading, phase])
 
   useEffect(() => {
     if (phase !== 'fade') return
@@ -49,10 +52,18 @@ export function SplashGate({ children }: { children: ReactNode }) {
           </div>
           <div className='text-center space-y-2 max-w-sm'>
             <p className='text-sm font-semibold tracking-tight text-zinc-100'>npm Packages Dashboard</p>
-            <p className='text-xs text-zinc-500'>Tap refresh (top right) to load from npm and GitHub.</p>
+            <p className='text-xs text-zinc-500'>
+              {loading
+                ? 'Loading npm, pub.dev, and GitHub… (large lists can take a minute)'
+                : 'Ready'}
+            </p>
           </div>
           <div className='h-1 w-36 overflow-hidden rounded-full bg-zinc-800'>
-            <div className='h-full w-2/5 rounded-full bg-gradient-to-r from-[#CB3837] to-violet-500 animate-pulse' />
+            <div
+              className={`h-full rounded-full bg-gradient-to-r from-[#CB3837] to-violet-500 ${
+                loading ? 'w-2/5 animate-pulse' : 'w-full transition-all duration-500'
+              }`}
+            />
           </div>
         </div>
       ) : null}

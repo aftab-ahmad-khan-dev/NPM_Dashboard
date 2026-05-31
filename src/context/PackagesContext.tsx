@@ -1,11 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { NPM_MAINTAINER_USERNAME, NPM_PACKAGES_PINNED, PACKAGE_DENYLIST } from '../data/packages'
+import {
+  NPM_MAINTAINER_USERNAME,
+  NPM_PACKAGES_PINNED,
+  PACKAGE_DENYLIST,
+  PUB_PACKAGE_NAMES,
+  PUB_PACKAGES_PINNED,
+} from '../data/packages'
 import {
   discoverPublishedPackageNames,
   fetchPackagesDownloadsBatch,
   fetchPackageMeta,
 } from '../lib/npm-api'
+import { fetchPubPackagesBatch, pubRecordToPackageData } from '../lib/pub-api'
 import type { PackageData } from '../types'
 
 interface State {
@@ -61,7 +68,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         const deny = new Set(PACKAGE_DENYLIST)
         names = names.filter((n) => !deny.has(n))
       }
-      const downloadMapPromise = fetchPackagesDownloadsBatch(names)
+      const downloadMapPromise = fetchPackagesDownloadsBatch(names).catch(() => new Map())
       const metaResultsPromise = mapInBatches(names, META_FETCH_BATCH, async (name) => {
         try {
           return await fetchPackageMeta(name)
@@ -69,7 +76,15 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
           return null
         }
       })
-      const [downloadMap, metas] = await Promise.all([downloadMapPromise, metaResultsPromise])
+      const [downloadMap, metas, pubRows] = await Promise.all([
+        downloadMapPromise,
+        metaResultsPromise,
+        fetchPubPackagesBatch(
+          [...new Set([...PUB_PACKAGE_NAMES, ...PUB_PACKAGES_PINNED])].sort((a, b) =>
+            a.localeCompare(b),
+          ),
+        ).catch(() => [] as Awaited<ReturnType<typeof fetchPubPackagesBatch>>),
+      ])
       const results: PackageData[] = []
       names.forEach((name, index) => {
         const meta = metas[index]
@@ -77,6 +92,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         const d = downloadMap.get(name)
         if (!d) return
         results.push({
+          registry: 'npm',
           name,
           meta,
           weekly: d.weekly,
@@ -85,6 +101,10 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
           monthlyRange: d.monthlyRange,
         })
       })
+      for (const row of pubRows) {
+        results.push(pubRecordToPackageData(row))
+      }
+      results.sort((a, b) => a.name.localeCompare(b.name))
       setPackages(results)
       setLastUpdated(new Date())
     } catch (e) {

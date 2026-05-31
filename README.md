@@ -15,6 +15,7 @@ No standalone backend runtime in the SPA bundle. Calls go to:
 - **`GET /api/npm-search?text=&size=&from=`** — forwards **`registry.npmjs.org/-/v1/search`** server-side (**same origin**—npm often omits **`Access-Control-Allow-Origin`** on responses, especially when rate-limited, so the browser falsely reports **CORS**). Retries **`429`** / **`503`** on the worker.
 - **`registry.npmjs.org/{package}`** — package **`GET`** metadata (**browser → registry**, still same public API as `npm`; if you hit CORS or 429 here too, mirror the search pattern with another proxy route).
 - **`POST /api/package-downloads`** — **`api/package-downloads.ts`** aggregates **`api.npmjs.org/downloads/…`** on the server...
+- **`POST /api/pub-packages`** — loads **pub.dev** metadata + **`downloadCount30Days`** for your Flutter/Dart packages (see `PUB_PACKAGE_NAMES` in `src/data/packages.ts`). pub.dev has no public `/my-packages` API, so names come from your Flutter monorepo manifest.
 
 Downloads work is **serialized with a minimum gap between npm calls** plus **retry/backoff on 429/503**, so upstream rate limits mostly hit Vercel’s IP once per dashboard load instead of dozens of concurrent browser callbacks.
 
