@@ -36,10 +36,24 @@ function devDashboardApiPlugin(): Plugin {
             return
           }
           try {
-            const upstream = await fetch(
-              `https://registry.npmjs.org/${encodeURIComponent(decodeURIComponent(pkg))}`,
+            const decoded = decodeURIComponent(pkg)
+            let upstream = await fetch(
+              `https://registry.npmjs.org/${encodeURIComponent(decoded)}`,
               { headers: { Accept: 'application/json' } },
             )
+            if (upstream.status === 404) {
+              await new Promise((resolve) => setTimeout(resolve, 2500))
+              upstream = await fetch(
+                `https://registry.npmjs.org/${encodeURIComponent(decoded)}`,
+                { headers: { Accept: 'application/json' } },
+              )
+            }
+            if (upstream.status === 404) {
+              r.statusCode = 200
+              r.setHeader('Content-Type', 'application/json; charset=utf-8')
+              r.end(JSON.stringify({ _missing: true, name: decoded }))
+              return
+            }
             const body = await upstream.text()
             const ct =
               upstream.headers.get('content-type') ?? 'application/json; charset=utf-8'

@@ -69,13 +69,9 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         names = names.filter((n) => !deny.has(n))
       }
       const downloadMapPromise = fetchPackagesDownloadsBatch(names).catch(() => new Map())
-      const metaResultsPromise = mapInBatches(names, META_FETCH_BATCH, async (name) => {
-        try {
-          return await fetchPackageMeta(name)
-        } catch {
-          return null
-        }
-      })
+      const metaResultsPromise = mapInBatches(names, META_FETCH_BATCH, (name) =>
+        fetchPackageMeta(name),
+      )
       const [downloadMap, metas, pubRows] = await Promise.all([
         downloadMapPromise,
         metaResultsPromise,

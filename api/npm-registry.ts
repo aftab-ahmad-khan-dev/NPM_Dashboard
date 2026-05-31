@@ -50,6 +50,15 @@ async function upstreamMetaOnce(pkg: string, attempt = 0): Promise<Response> {
   })
 
   if (
+    upstream.status === 404 &&
+    attempt === 0
+  ) {
+    // npm search can list packages before registry metadata replicates (fresh publish).
+    await sleep(2500)
+    return upstreamMetaOnce(pkg, attempt + 1)
+  }
+
+  if (
     (upstream.status === 429 || upstream.status === 503) &&
     attempt < MAX_FETCH_ATTEMPTS - 1
   ) {
@@ -76,6 +85,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const upstream = await upstreamMetaOnce(pkg)
+    if (upstream.status === 404) {
+      res.status(200).json({ _missing: true, name: pkg })
+      return
+    }
+
     const body = await upstream.text()
     const ct =
       upstream.headers.get('content-type') ?? 'application/json; charset=utf-8'
