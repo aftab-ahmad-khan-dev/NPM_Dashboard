@@ -13,7 +13,7 @@ Standalone monitoring dashboard for npm packages you publish under your npm user
 No standalone backend runtime in the SPA bundle. Calls go to:
 
 - **`GET /api/npm-search?text=&size=&from=`** — forwards **`registry.npmjs.org/-/v1/search`** server-side (**same origin**—npm often omits **`Access-Control-Allow-Origin`** on responses, especially when rate-limited, so the browser falsely reports **CORS**). Retries **`429`** / **`503`** on the worker.
-- **`registry.npmjs.org/{package}`** — package **`GET`** metadata (**browser → registry**, still same public API as `npm`; if you hit CORS or 429 here too, mirror the search pattern with another proxy route).
+- **`GET /api/npm-registry?package=`** — forwards **`registry.npmjs.org/{package}`** metadata (same CORS fix for scoped names like `@scope/pkg`).
 - **`POST /api/package-downloads`** — **`api/package-downloads.ts`** aggregates **`api.npmjs.org/downloads/…`** on the server...
 - **`POST /api/pub-packages`** — loads **pub.dev** metadata + **`downloadCount30Days`** for your Flutter/Dart packages (see `PUB_PACKAGE_NAMES` in `src/data/packages.ts`). pub.dev has no public `/my-packages` API, so names come from your Flutter monorepo manifest.
 

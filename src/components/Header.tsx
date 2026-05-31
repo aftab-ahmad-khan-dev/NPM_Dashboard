@@ -40,7 +40,7 @@ export function Header({ onMenuClick }: Props) {
           className="text-[10px] text-zinc-600 hidden md:inline max-w-[14rem] leading-snug text-right"
           title="Weekly/monthly counts and metadata are read from npm’s official public APIs (same aggregates npm shows). No private credentials are used."
         >
-          Public npm data · registry &amp; downloads API
+          Public npm data · proxied registry &amp; downloads
         </span>
         {loading && (
           <span className="text-xs text-violet-400/90 hidden sm:inline whitespace-nowrap">

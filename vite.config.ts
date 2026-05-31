@@ -26,6 +26,34 @@ function devDashboardApiPlugin(): Plugin {
         const pathOnly = rawUrl.split('?')[0]
         const r = res as ServerResponse
 
+        if (req.method === 'GET' && pathOnly === '/api/npm-registry') {
+          const url = new URL(rawUrl, 'http://vite.localhost')
+          const pkg = url.searchParams.get('package') ?? url.searchParams.get('name')
+          if (!pkg?.trim()) {
+            r.statusCode = 400
+            r.setHeader('Content-Type', 'application/json; charset=utf-8')
+            r.end(JSON.stringify({ error: 'missing ?package=' }))
+            return
+          }
+          try {
+            const upstream = await fetch(
+              `https://registry.npmjs.org/${encodeURIComponent(decodeURIComponent(pkg))}`,
+              { headers: { Accept: 'application/json' } },
+            )
+            const body = await upstream.text()
+            const ct =
+              upstream.headers.get('content-type') ?? 'application/json; charset=utf-8'
+            r.statusCode = upstream.status
+            r.setHeader('Content-Type', ct)
+            r.end(body)
+          } catch {
+            r.statusCode = 502
+            r.setHeader('Content-Type', 'application/json; charset=utf-8')
+            r.end(JSON.stringify({ error: 'Upstream registry fetch failed' }))
+          }
+          return
+        }
+
         if (req.method === 'GET' && pathOnly === '/api/npm-search') {
           const url = new URL(rawUrl, 'http://vite.localhost')
           const qp = sanitizeNpmSearchQuery(Array.from(url.searchParams.entries()))

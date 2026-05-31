@@ -3,10 +3,10 @@ import { fetchWithTimeout } from './fetch-timeout'
 
 export type { PackageDownloadsBundle } from '../types'
 
-const REGISTRY = 'https://registry.npmjs.org'
-
-/** Same-origin API — npm’s search endpoint does not reliably send browser CORS (429s mask as “CORS”). */
 const NPM_SEARCH_API = '/api/npm-search'
+
+/** Same-origin proxy — registry metadata (browser CORS fails on some npm responses). */
+const NPM_REGISTRY_API = '/api/npm-registry'
 
 /** Same-origin API — see `api/package-downloads.ts` (runs npm downloads work server-side, one POST). */
 export const PACKAGE_DOWNLOADS_API = '/api/package-downloads'
@@ -194,7 +194,9 @@ export async function discoverPublishedPackageNames(username: string): Promise<s
 export const fetchPackageNamesByMaintainer = discoverPublishedPackageNames
 
 export async function fetchPackageMeta(name: string): Promise<NpmRegistryMeta> {
-  const res = await registryFetch(`${REGISTRY}/${encodeURIComponent(name)}`)
+  const res = await registryFetch(
+    `${NPM_REGISTRY_API}?package=${encodeURIComponent(name)}`,
+  )
   if (!res.ok) {
     throw new Error(`Registry fetch failed for ${name}: ${res.status}`)
   }

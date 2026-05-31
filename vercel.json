@@ -9,6 +9,9 @@
     },
     "api/npm-search.ts": {
       "maxDuration": 30
+    },
+    "api/npm-registry.ts": {
+      "maxDuration": 30
     }
   },
   "framework": "vite",
