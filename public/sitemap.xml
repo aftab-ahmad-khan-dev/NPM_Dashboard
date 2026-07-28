@@ -1,94 +1,146 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml"
->
-  <!-- Core pages -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://npm-packages-modules.dev/</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/" />
+    <image:image>
+      <image:loc>https://npm-dashboard-eta.vercel.app/products/npm-dashboard.jpg</image:loc>
+      <image:title>npm Packages Dashboard</image:title>
+      <image:caption>Open-source package hub by Aftab Ahmad Khan</image:caption>
+    </image:image>
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/overview</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/overview</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/overview" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/overview" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages" />
+  </url>
+  <url>
+    <loc>https://npm-dashboard-eta.vercel.app/products</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/products" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/products" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/products</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/pricing</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/pricing" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/pricing" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/pricing</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/about</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/about" />
+  </url>
+  <url>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/monodrift</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/monodrift" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/monodrift" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/about</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/picsmith</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- One entry per published package -->
-  <url>
-    <loc>https://npm-packages-modules.dev/packages/monodrift</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/picsmith" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/picsmith" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/picsmith</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/mcp-bootstrap</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/mcp-bootstrap" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/mcp-bootstrap" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/mcp-bootstrap</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/fileflux</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/fileflux" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/fileflux" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/fileflux</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/chainsentry</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/chainsentry" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/chainsentry" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/chainsentry</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/envrunes</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/envrunes" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/envrunes" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/envrunes</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/llmtoken</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/llmtoken" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/llmtoken" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/llmtoken</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/promptver</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/promptver" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/promptver" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/promptver</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/reconnecting-stream</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/reconnecting-stream" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/reconnecting-stream" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/reconnecting-stream</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/cost-limiter</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/cost-limiter" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/cost-limiter" />
   </url>
   <url>
-    <loc>https://npm-packages-modules.dev/packages/cost-limiter</loc>
+    <loc>https://npm-dashboard-eta.vercel.app/packages/mongoose-advanced-plugin</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://npm-packages-modules.dev/packages/mongoose-advanced-plugin</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://npm-dashboard-eta.vercel.app/packages/mongoose-advanced-plugin" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://npm-dashboard-eta.vercel.app/packages/mongoose-advanced-plugin" />
   </url>
 </urlset>
