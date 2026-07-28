@@ -150,7 +150,7 @@ export const PRODUCTS: Product[] = [
       'Day-by-day JavaScript practice with a live console, timeline, tips, and format/run tooling — from optional chaining through modern patterns.',
     category: 'product',
     badge: 'Live',
-    liveUrl: 'https://coded-by-aftab.vercel.app/',
+    liveUrl: 'https://coded-by-aftab.vercel.app/editor?track=javascript',
     detailsUrl: PORTFOLIO,
     image: '/products/coded-by-aftab.jpg',
     imageAlt: '30 Days of JavaScript interactive lesson console',
