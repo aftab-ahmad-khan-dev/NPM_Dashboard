@@ -1,5 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { Github, Info, LayoutDashboard, Package, X } from "lucide-react";
+import {
+  CreditCard,
+  Github,
+  Info,
+  LayoutDashboard,
+  LayoutGrid,
+  Package,
+  X,
+} from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -16,6 +24,8 @@ interface NavItem {
 const links: NavItem[] = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/packages", label: "Packages", icon: Package },
+  { to: "/products", label: "Products", icon: LayoutGrid },
+  { to: "/pricing", label: "Pricing", icon: CreditCard },
   { to: "/about", label: "About Me", icon: Info },
 ];
 
