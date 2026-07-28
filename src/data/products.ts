@@ -131,10 +131,10 @@ export const PRODUCTS: Product[] = [
     name: 'Code Crafters',
     tagline: 'Free hands-on MERN roadmap',
     description:
-      'Guided MERN learning tracks — JavaScript, React, Node, Express, and MongoDB — with progress tracking.',
+      '17 live tracks · 426 topics & exercises · 120-day calendar — HTML to MongoDB plus Shopify, C++, MySQL, and a separate Monaco editor.',
     category: 'product',
     badge: 'Live',
-    liveUrl: 'https://code-crafters.vercel.app/',
+    liveUrl: 'https://coded-by-aftab.vercel.app/',
     detailsUrl: PORTFOLIO,
     image: '/products/code-crafters-dashboard.jpg',
     imageAlt: 'Code Crafters roadmap',
