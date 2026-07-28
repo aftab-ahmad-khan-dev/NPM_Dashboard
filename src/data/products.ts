@@ -127,6 +127,22 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
+    id: 'pet-corner',
+    name: 'Pet Corner',
+    tagline: 'Veterinary & pet care platform',
+    description:
+      'Clinic-ready platform for patient records, inventory, billing, and analytics — built for veterinary and pet-care teams.',
+    category: 'product',
+    badge: 'Live',
+    liveUrl: 'https://pet-corner-omega.vercel.app/',
+    detailsUrl: PORTFOLIO,
+    image: 'https://pet-corner-omega.vercel.app/logo.png',
+    imageAlt: 'Pet Corner veterinary platform',
+    accent: '#10B981',
+    tags: ['Healthcare', 'SaaS', 'Ops'],
+    featured: true,
+  },
+  {
     id: 'code-crafters',
     name: 'Code Crafters',
     tagline: 'Free hands-on MERN roadmap',
@@ -173,6 +189,23 @@ export const PRODUCTS: Product[] = [
     imageAlt: 'AI Dev Guardrails skills and rules',
     accent: '#F59E0B',
     tags: ['AI', 'Cursor', 'Skills'],
+    featured: true,
+  },
+  {
+    id: 'mongoose-advanced-plugin',
+    name: 'Mongoose Advanced Plugin',
+    tagline: 'Soft delete, audit trail, versioning',
+    description:
+      'Drop-in Mongoose plugin adding soft delete, pagination, actor tracking, an embedded audit trail, and optimistic versioning with history snapshots.',
+    category: 'open-source',
+    badge: 'Open source',
+    repoUrl: 'https://github.com/aftab-ahmad-khan-dev/mongoose-advanced-plugin',
+    detailsUrl: PORTFOLIO,
+    image:
+      'https://opengraph.githubassets.com/1/aftab-ahmad-khan-dev/mongoose-advanced-plugin',
+    imageAlt: 'Mongoose Advanced Plugin GitHub repository',
+    accent: '#0F766E',
+    tags: ['MongoDB', 'Node.js', 'OSS'],
     featured: true,
   },
   {

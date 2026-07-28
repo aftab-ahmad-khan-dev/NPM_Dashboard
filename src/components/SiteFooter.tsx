@@ -1,6 +1,7 @@
 import { SOCIALS } from '../data/links'
 import { WHATSAPP_DISPLAY, whatsappSupportUrl } from '../data/billing'
 import { WhatsAppIcon } from './WhatsAppFab'
+import { SOCIAL_ICONS } from './SocialIcons.jsx'
 
 export function SiteFooter() {
   return (
@@ -27,15 +28,17 @@ export function SiteFooter() {
           <div className='mt-3 flex flex-wrap gap-2'>
             {SOCIALS.map((s) => {
               const external = !s.href.startsWith('mailto:')
+              const Icon = SOCIAL_ICONS[s.id as keyof typeof SOCIAL_ICONS]
               return (
                 <a
                   key={s.id}
                   href={s.href}
                   target={external ? '_blank' : undefined}
                   rel={external ? 'noreferrer' : undefined}
-                  className='inline-flex items-center rounded-full border border-zinc-800 px-3 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-violet-500/40 hover:text-zinc-200'
+                  className='inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-violet-500/40 hover:text-zinc-200'
                 >
-                  {s.label}
+                  {Icon ? <Icon size={12} /> : null}
+                  <span>{s.label}</span>
                 </a>
               )
             })}
