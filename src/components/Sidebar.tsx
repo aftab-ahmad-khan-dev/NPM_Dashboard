@@ -22,7 +22,7 @@ interface NavItem {
 }
 
 const links: NavItem[] = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
+  { to: "/overview", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/packages", label: "Packages", icon: Package },
   { to: "/products", label: "Products", icon: LayoutGrid },
   { to: "/pricing", label: "Pricing", icon: CreditCard },
@@ -45,7 +45,7 @@ export function Sidebar({ open, onClose }: Props) {
         }`}
       >
         <div className='h-16 flex items-center justify-between px-5 border-b border-zinc-900'>
-          <div className='flex items-center gap-2.5'>
+          <NavLink to='/' className='flex items-center gap-2.5 min-w-0' end>
             <img
               src='/npm.svg'
               alt='npm'
@@ -59,7 +59,7 @@ export function Sidebar({ open, onClose }: Props) {
                 MERN · RN · Flutter
               </div>
             </div>
-          </div>
+          </NavLink>
           <button
             onClick={onClose}
             className='lg:hidden p-1 text-zinc-500 hover:text-zinc-100'

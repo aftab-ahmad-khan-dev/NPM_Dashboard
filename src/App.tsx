@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { Home } from './pages/Home'
 import { Overview } from './pages/Overview'
 import { Packages } from './pages/Packages'
 import { PackageDetail } from './pages/PackageDetail'
@@ -14,15 +15,16 @@ export default function App() {
     <PackagesProvider>
       <SplashGate>
         <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Overview />} />
+          <Route path="/" element={<Home />} />
+          <Route element={<Layout />}>
+            <Route path="overview" element={<Overview />} />
             <Route path="packages" element={<Packages />} />
             <Route path="packages/:name" element={<PackageDetail />} />
             <Route path="products" element={<Products />} />
             <Route path="pricing" element={<Pricing />} />
             <Route path="about" element={<About />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </SplashGate>
     </PackagesProvider>

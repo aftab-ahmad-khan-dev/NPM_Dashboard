@@ -8,8 +8,10 @@ interface Props {
 }
 
 const pageTitles: Record<string, string> = {
-  '/': 'Overview',
+  '/overview': 'Overview',
   '/packages': 'Packages',
+  '/products': 'Products',
+  '/pricing': 'Pricing',
   '/about': 'About Me',
 }
 

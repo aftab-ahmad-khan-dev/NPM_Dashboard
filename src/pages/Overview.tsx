@@ -70,7 +70,7 @@ export function Overview() {
         : "Live overview of open-source npm packages by Aftab Ahmad Khan — total downloads, version count, top packages, recent releases, and license distribution. Updated in real time from registry.npmjs.org.",
     keywords:
       "npm packages dashboard, MERN, React Native, Flutter, live npm stats, open source typescript, aftab ahmad khan, mr-aftab-ahmad-khan, monodrift, picsmith, mcp-bootstrap, fileflux, chainsentry, envrunes, llmtoken, promptver, weekly downloads",
-    canonical: "https://npm-packages-modules.dev/",
+    canonical: "https://npm-packages-modules.dev/overview",
   });
 
   const [orgRepos, setOrgRepos] = useState<OrgRepo[]>([]);
