@@ -1,0 +1,47 @@
+# Publish Dart/Flutter package to pub.dev — Linux runner, no Xcode.
+#
+# Setup:
+#   1. Pub.dev → My account → Create token suitable for uploads / CI (see their docs).
+#   2. GitHub repo → Settings → Secrets → Actions → PUB_TOKEN.
+#   3. Copy to: .github/workflows/pub-publish.yml
+#   4. Set PUBLISH_DIR if pubspec.yaml is not at repo root.
+
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PUBLISH_DIR: .
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Dry run
+        working-directory: ${{ env.PUBLISH_DIR }}
+        run: dart pub publish --dry-run
+        env:
+          PUB_TOKEN: ${{ secrets.PUB_TOKEN }}
+
+      - name: Publish
+        working-directory: ${{ env.PUBLISH_DIR }}
+        run: dart pub publish --force
+        env:
+          PUB_TOKEN: ${{ secrets.PUB_TOKEN }}

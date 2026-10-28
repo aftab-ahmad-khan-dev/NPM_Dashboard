@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="npm Packages Dashboard by Aftab Ahmad Khan">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0f"/>
+      <stop offset="1" stop-color="#1a0b2e"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fafafa"/>
+      <stop offset="0.55" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="0.85" cy="0.1" r="0.5">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.1" cy="0.9" r="0.55">
+      <stop offset="0" stop-color="#06b6d4" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- npm logo chip -->
+  <g transform="translate(80 80)">
+    <rect width="84" height="84" rx="14" fill="#CB3837"/>
+    <text x="42" y="58" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="-1.5">npm</text>
+  </g>
+  <text x="184" y="125" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#a1a1aa" letter-spacing="2">PACKAGES · DASHBOARD</text>
+
+  <!-- Main title -->
+  <text x="80" y="320" font-family="Helvetica, Arial, sans-serif" font-size="96" font-weight="800" fill="url(#title)" letter-spacing="-2">11 open-source</text>
+  <text x="80" y="430" font-family="Helvetica, Arial, sans-serif" font-size="96" font-weight="800" fill="url(#title)" letter-spacing="-2">npm packages.</text>
+
+  <!-- Subtitle / keywords -->
+  <text x="80" y="500" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#a1a1aa">TypeScript · CLIs · AI tooling · monorepos · supply-chain security</text>
+
+  <!-- Author byline -->
+  <text x="80" y="565" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#e4e4e7">by</text>
+  <text x="120" y="565" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#fafafa">Aftab Ahmad Khan</text>
+  <text x="385" y="565" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#71717a">@mr-aftab-ahmad-khan</text>
+</svg>
