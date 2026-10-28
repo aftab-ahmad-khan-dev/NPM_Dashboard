@@ -1,0 +1,56 @@
+# robots.txt — enriched for search discovery
+# Site: https://npm-dashboard-eta.vercel.app
+# Updated: 2026-07-28
+# Public npm & pub.dev package dashboard — index all marketing + package detail pages.
+
+User-agent: *
+Allow: /
+
+# ── Major search engines ──
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckGo-Favicons-Bot
+Allow: /
+
+# ── AI / discovery crawlers (brand reach) ──
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Sitemap: https://npm-dashboard-eta.vercel.app/sitemap.xml
+Sitemap: https://npm-dashboard-eta.vercel.app/sitemap-index.xml
+Host: npm-dashboard-eta.vercel.app
+
